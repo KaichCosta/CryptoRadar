@@ -1,6 +1,6 @@
 
 #   PASSOS
-#4 criar sistema de envio de notificação pro windows               
+            
 #5 criar um executavel pra isso tudo                               
 #6 criar sistema pra enviar pro celular
 #    o1 qualquer coisa criar outro arquivo pra criar um apk pro celular do meu pai e executar tudo pelo celular do meu pai e fazer ele receber as notificaçoes
@@ -19,23 +19,43 @@ import pywhatkit
 symbols = ['btc-usd', 'eth-usd']
 tickers = yf.Tickers(','.join(symbols))
 
-for symbol in symbols:
-    print(tickers.tickers[symbol.upper()].history(period = '1d')['Close'][0])
+#for symbol in symbols:
+#    print(tickers.tickers[symbol.upper()].history(period = '1d')['Close'][0])
 
-#3 definir valor baixo para comprar e valor alto pra vender    
-limite_max = [584079, 22366]
-limite_min = [568926, 21511]
+#3 definir valor baixo para comprar e valor alto pra vender
+# dar opcão do cliente escolher os valores max, min das criptos ex: limite =int(input'escolha valor min e max de eth e btc')    
+limite_max = [105000, 3850]
+limite_min = [103700, 3830]
 
 while True:
-    ultimo_preco = [tickers.tickers[symbol.upper()].history(period = '1d')['Close'][0] for symbol in symbols]
-    print(datetime.now())
+    ultimo_preco = [
+        round(float(tickers.tickers[symbol.upper()].history(period='1d')['Close'].iloc[0]), 2)#round, float e esse ,2 são pra formatar com 2 casas decimais os valores das criptos
+        for symbol in symbols
+    ]
+    print(f'\033[1;32m{datetime.now()}\033[0m')
     print(ultimo_preco)
-    time.sleep (2)
-    if ultimo_preco >= limite_max:
+    print('\033[1;32m--BITCOIN--ETHEREUM\033[0m')
+    time.sleep (5)
+
+    #4 criar sistema de envio de notificação pro zap CRIAR UM GRUPO E POR MEU PAI E EU PRA RECEBER ESSAS NOTIFICAÇÕES  
+
+    #tem que ver se aparece separado pra btc e eth( TO TENTANDO ARRUMAR KKKK, E TEM QUE QUANDO MANDAR MENSAGEM APARECER QUAL CRIPTO TEM QUE COMPRAR E VENDER)
+    if ultimo_preco > limite_max:#ALERTA DE VENDA
+        print('========ALERTA DE VENDA========')
+
+        agora = datetime.now()
+        hora = agora.hour
+        minutos = agora.minute + 1  # Adiciona 1 minuto para evitar atraso
+        pywhatkit.sendwhatmsg('+5537998460473', 'Hora de vender', hora, minutos)
         break
-    #tem que ver se aparece separado pra btc e eth
-    if ultimo_preco >= limite_max:
-        pywhatkit.sendwhatmsg('+5537998460473', 'Hora de comprar', datetime.now())
+
+    if ultimo_preco < limite_min:#ALERTA DE COMPRA
+        print('========ALERTA DE COMPRA========')
+        agora = datetime.now()
+        hora = agora.hour
+        minutos = agora.minute + 1  # Adiciona 1 minuto para evitar atraso
+        pywhatkit.sendwhatmsg('+5537998460473', 'Hora de comprar', hora, minutos, 5)
+        break
 
 
 
