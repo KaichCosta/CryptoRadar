@@ -18,17 +18,20 @@ time.sleep (5)
     #4 criar sistema de envio de notificação pro zap CRIAR UM GRUPO E POR MEU PAI E EU PRA RECEBER ESSAS NOTIFICAÇÕES  
 
     #tem que ver se aparece separado pra btc e eth
-if ultimo_preco > limite_max:#ALERTA DE VENDA
-    print('========ALERTA DE VENDA========')
-    if symbols(0) > limite_max(0):
-        print('==BITCOIN==')
-    if symbols(1) > limite_max(1):
-        print('==ETHEREUM==')
+for i, preco in enumerate(ultimo_preco):
+    simbolo = symbols[i].upper()
+    max = limite_max[i]
+    min = limite_min[i]
 
-if ultimo_preco < limite_min:#ALERTA DE COMPRA
-    print('========ALERTA DE COMPRA========')
-    if symbols(0) > limite_min(0):
-        print('==BITCOIN==')
-    if symbols(1) > limite_min(1):
-        print('==ETHEREUM==')
+    if preco > max:
+        print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
+        print(f'\033[1;31m{simbolo}: Preço atual ({preco}) ultrapassou o limite máximo ({max}).\033[0m')
+    
+    elif preco < min:
+        print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
+        print(f'\033[1;31m{simbolo}: Preço atual ({preco}) ultrapassou o limite máximo ({min}).\033[0m')
+    
+    else:
+        print(f'\033[1;32m{simbolo} está dentro do limite esperado.\033[0m')
 
+time.sleep(5)

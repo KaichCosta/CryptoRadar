@@ -9,7 +9,7 @@
 
 #1 importar bibliotecas  
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import yfinance as yf
 import pywhatkit
@@ -38,23 +38,45 @@ while True:
     time.sleep (5)
 
     #4 criar sistema de envio de notificação pro zap CRIAR UM GRUPO E POR MEU PAI E EU PRA RECEBER ESSAS NOTIFICAÇÕES  
+    for i, preco in enumerate(ultimo_preco):
+        simbolo = symbols[i].upper()
+        max = limite_max[i]
+        min = limite_min[i]
 
-    #tem que ver se aparece separado pra btc e eth( TO TENTANDO ARRUMAR KKKK, E TEM QUE QUANDO MANDAR MENSAGEM APARECER QUAL CRIPTO TEM QUE COMPRAR E VENDER)
+    if preco > max:
+        print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
+        print(f'\033[1;31m{simbolo}: Preço atual ({preco}) ultrapassou o limite máximo ({max}).\033[0m')
+    
+    elif preco < min:
+        print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
+        print(f'\033[1;31m{simbolo}: Preço atual ({preco}) ultrapassou o limite máximo ({min}).\033[0m')
+    
+    else:
+        print(f'\033[1;32m{simbolo} está dentro do limite esperado.\033[0m')
+
+    time.sleep(5)
+    #E TEM QUE QUANDO MANDAR MENSAGEM APARECER QUAL CRIPTO TEM QUE COMPRAR E VENDER)
+
     if ultimo_preco > limite_max:#ALERTA DE VENDA
         print('========ALERTA DE VENDA========')
 
         agora = datetime.now()
-        hora = agora.hour
-        minutos = agora.minute + 1  # Adiciona 1 minuto para evitar atraso
-        pywhatkit.sendwhatmsg('+5537998460473', 'Hora de vender', hora, minutos)
+
+        hora_envio = agora + timedelta(minutes=2)# Adiciona 2 minuto para evitar atraso
+        hora = hora_envio.hour
+        minutos = hora_envio.minute + 1  # Adiciona 1 minuto para evitar atraso
+        pywhatkit.sendwhatmsg(f'+5537998460473', 'Hora de vender {simbolo}', hora, minutos)
         break
 
     if ultimo_preco < limite_min:#ALERTA DE COMPRA
         print('========ALERTA DE COMPRA========')
+
         agora = datetime.now()
-        hora = agora.hour
-        minutos = agora.minute + 1  # Adiciona 1 minuto para evitar atraso
-        pywhatkit.sendwhatmsg('+5537998460473', 'Hora de comprar', hora, minutos, 5)
+
+        hora_envio = agora + timedelta(minutes=2)# Adiciona 2 minuto para evitar atraso
+        hora = hora_envio.hour
+        minutos = hora_envio.minute + 1  # Adiciona 1 minuto para evitar atraso
+        pywhatkit.sendwhatmsg('+5537998460473', f'Hora de comprar {simbolo}', hora, minutos, )
         break
 
 

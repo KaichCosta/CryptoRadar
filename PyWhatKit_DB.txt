@@ -13,3 +13,8 @@ Time: 0:33
 Phone Number: +5537998460473
 Message: Hora de comprar
 --------------------
+Date: 7/12/2024
+Time: 2:22
+Phone Number: +5537998460473
+Message: Hora de comprar {simbolo}
+--------------------
