@@ -1,37 +1,37 @@
 from datetime import datetime
 import time
-import yfinance as yf
-symbols = ['btc-usd', 'eth-usd']
-tickers = yf.Tickers(','.join(symbols))
-limite_max = [105000, 3850]
-limite_min = [103700, 3830]
-ultimo_preco = [
-    round(float(tickers.tickers[symbol.upper()].history(period='1d')['Close'].iloc[0]), 2)#round, float e esse ,2 são pra formatar com 2 casas decimais os valores das criptos
-    for symbol in symbols
-]
-print(f'\033[1;32m{datetime.now()}\033[0m')
-print(ultimo_preco)
-print('\033[1;32m--BITCOIN--ETHEREUM\033[0m')
+import openpyxl
+from urllib.parse import quote
+import webbrowser
+import pyautogui
+hora = datetime.now()
 
-time.sleep (5)
+webbrowser.open('https://web.whatsapp.com/')
+time.sleep(10)
+workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
+pagina_contatos = workbook['Plan1']
 
-    #4 criar sistema de envio de notificação pro zap CRIAR UM GRUPO E POR MEU PAI E EU PRA RECEBER ESSAS NOTIFICAÇÕES  
+for linha in pagina_contatos.iter_rows(min_row=5):
+    #nome, telefone
+    nome = linha[2].value    
+    telefone = linha[3].value
+    #mensagem que será enviada aos contatos
+    msg = f'Olá {nome}, hora de vender {simbolo}, {hora.strftime('%d/%m/%Y, %H:%M')}'
+    #link que abrirá o zap
+    link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
 
-    #tem que ver se aparece separado pra btc e eth
-for i, preco in enumerate(ultimo_preco):
-    simbolo = symbols[i].upper()
-    max = limite_max[i]
-    min = limite_min[i]
+    webbrowser.open(link_mensagem_zap)
 
-    if preco > max:
-        print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
-        print(f'\033[1;31m{simbolo}: Preço atual ({preco}) ultrapassou o limite máximo ({max}).\033[0m')
-    
-    elif preco < min:
-        print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
-        print(f'\033[1;31m{simbolo}: Preço atual ({preco}) ultrapassou o limite máximo ({min}).\033[0m')
-    
-    else:
-        print(f'\033[1;32m{simbolo} está dentro do limite esperado.\033[0m')
+    time.sleep(15)
+    pyautogui.press('enter')
+    time.sleep(5)
 
-time.sleep(5)
+    pyautogui.hotkey('ctrl', 'w')
+    time.sleep(2)
+
+    pyautogui.hotkey('ctrl', 'w')
+    time.sleep(5)
+
+    print('FINALIZADO')
+    break
+

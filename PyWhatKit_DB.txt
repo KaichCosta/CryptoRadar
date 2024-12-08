@@ -18,3 +18,8 @@ Time: 2:22
 Phone Number: +5537998460473
 Message: Hora de comprar {simbolo}
 --------------------
+Date: 7/12/2024
+Time: 20:26
+Phone Number: +5537998460473
+Message: Hora de comprar ETH-USD
+--------------------

@@ -9,11 +9,14 @@
 
 #1 importar bibliotecas  
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
 import yfinance as yf
-import pywhatkit
-#from winotify import Notification, audio
+import openpyxl
+from urllib.parse import quote
+import webbrowser
+import pyautogui
+
 
 #2 buscar preços bitcoin e ações atuais
 symbols = ['btc-usd', 'eth-usd']
@@ -40,7 +43,9 @@ while True:
     #4 criar sistema de envio de notificação pro zap CRIAR UM GRUPO E POR MEU PAI E EU PRA RECEBER ESSAS NOTIFICAÇÕES  
     for i, preco in enumerate(ultimo_preco):
         simbolo = symbols[i].upper()
+
         max = limite_max[i]
+        
         min = limite_min[i]
 
     if preco > max:
@@ -57,27 +62,7 @@ while True:
     time.sleep(5)
     #E TEM QUE QUANDO MANDAR MENSAGEM APARECER QUAL CRIPTO TEM QUE COMPRAR E VENDER)
 
-    if ultimo_preco > limite_max:#ALERTA DE VENDA
-        print('========ALERTA DE VENDA========')
 
-        agora = datetime.now()
-
-        hora_envio = agora + timedelta(minutes=2)# Adiciona 2 minuto para evitar atraso
-        hora = hora_envio.hour
-        minutos = hora_envio.minute + 1  # Adiciona 1 minuto para evitar atraso
-        pywhatkit.sendwhatmsg(f'+5537998460473', 'Hora de vender {simbolo}', hora, minutos)
-        break
-
-    if ultimo_preco < limite_min:#ALERTA DE COMPRA
-        print('========ALERTA DE COMPRA========')
-
-        agora = datetime.now()
-
-        hora_envio = agora + timedelta(minutes=2)# Adiciona 2 minuto para evitar atraso
-        hora = hora_envio.hour
-        minutos = hora_envio.minute + 1  # Adiciona 1 minuto para evitar atraso
-        pywhatkit.sendwhatmsg('+5537998460473', f'Hora de comprar {simbolo}', hora, minutos, )
-        break
 
 
 
