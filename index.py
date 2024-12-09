@@ -22,11 +22,11 @@ import pyautogui
 symbols = ['btc-usd', 'eth-usd']
 tickers = yf.Tickers(','.join(symbols))
 
-#for symbol in symbols:
-#    print(tickers.tickers[symbol.upper()].history(period = '1d')['Close'][0])
 
 #3 definir valor baixo para comprar e valor alto pra vender
-# dar opcão do cliente escolher os valores max, min das criptos ex: limite =int(input'escolha valor min e max de eth e btc')    
+# dar opcão do cliente escolher os valores max, min das criptos ex: limite =int(input'escolha valor min e max de eth e btc'
+
+# Valores pré-programados     
 limite_max = [105000, 3850]
 limite_min = [103700, 3830]
 
@@ -123,4 +123,4 @@ while True:
 
             print('FINALIZADO')
             break
-    #E TEM QUE QUANDO MANDAR MENSAGEM APARECER QUAL CRIPTO TEM QUE COMPRAR E VENDER)
+
