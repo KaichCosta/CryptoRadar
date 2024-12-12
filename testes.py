@@ -9,20 +9,30 @@ from tkinter import *
 # Variáveis globais
 limite_max = []
 limite_min = []
-#AGORA É FAZER UM TRATAMENTO DE ERRO DECENTE
+#AGORA É FAZER UM TRATAMENTO DE ERRO DECENTE to fazendo kkk
 def salvar_valores():
     # Lê os valores inseridos pelo usuário
     global limite_max, limite_min
+    valores_max = entrada_max.get()
+    valores_min = entrada_min.get()
+    #validação, deu um erro que fechou a janela antes de aparecer o erro escrito na interface
     try:
         valores_max = entrada_max.get().split(',')
         valores_min = entrada_min.get().split(',')
-        limite_max = [float(valores_max[0]), float(valores_max[1])]
-        limite_min = [float(valores_min[0]), float(valores_min[1])]
-        print(f"Limite Máximo: {limite_max}")
-        print(f"Limite Mínimo: {limite_min}")
+        if len(valores_max) == 2 and len(valores_min) == 2:
+            limite_max = [float(valores_max[0]), float(valores_max[1])]
+            limite_min = [float(valores_min[0]), float(valores_min[1])]
+            print(f"Limite Máximo: {limite_max}")
+            print(f"Limite Mínimo: {limite_min}")
+        else:
+            info_erro1 = Label(janela, text='Certifique-se de fornecer exatamente dois valores primeiro para BTC e o segundo para ETH')
+            info_erro1.pack(pady = 1)
+            print("Erro: Certifique-se de fornecer exatamente dois valores para cada limite.")
     except (ValueError, IndexError):
-        print("Erro: Certifique-se de digitar os valores no formato correto (ex: 105000.00, 3850.00)")
-        # Converte os valores para float e os armazena nas variáveis
+            info_erro2 = Label(janela, text='Digite os Preços no formato pedido')
+            info_erro2.pack(pady = 1)
+            print("Erro: Certifique-se de digitar os valores no formato correto (ex: 105000.00, 3850.00)")
+            # Converte os valores para float e os armazena nas variáveis
 
 def iniciar_sistema():
     salvar_valores() 
@@ -57,5 +67,5 @@ info3.pack(pady = 10)
 janela.mainloop()
 
 if sistema_iniciado:
-
+    print('-----------------------FDGEREG--------------------')
 
