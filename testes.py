@@ -10,7 +10,7 @@ from tkinter import *
 limite_max = []
 limite_min = []
 sistema_iniciado = False
-#AGORA É FAZER UM TRATAMENTO DE ERRO DECENTE to fazendo kkk
+#TRATAMENTO DE ERRO DECENTE
 def salvar_valores():
     # Lê os valores inseridos pelo usuário
     global limite_max, limite_min
@@ -48,51 +48,47 @@ def iniciar_sistema():
     if salvar_valores():
         global sistema_iniciado  # Define uma flag global para controle
         sistema_iniciado = True  # Altera o estado da flag
-        janela.quit()         # Fecha a janela e permite o restante do código ser executado
+        janela.iconify()         # Fecha a janela e permite o restante do código ser executado
 
 def fechar_sistema():
     global sistema_iniciado
-    time.sleep(2)
-    janela.destroy
+    janela.destroy()
+    print('SISTEMA FECHADO COM SUCESSO')
 
 
 #JANELA ABERTA
 janela = Tk()
+janela.configure(bg='#f7f7f7')#cor de fundo da janela
 janela.title('Preços máximos e mínimos venda e compra de criptos')
 
-info = Label(janela, text='Favor abrir Whatsapp Web antes de iniciar o programa',)
-info.pack(pady = 5)
+info = Label(janela, text='Favor abrir Whatsapp Web antes de iniciar o programa',fg='red',font=("Helvetica", 12, "underline")).pack(pady = 5)
+#info.config(font=("Verdana", 12, "italic"))
 
-comando =Label(janela, text='Digite os valores pedidos abaixo no formato (105000.00, 3850.00)')
+
+comando =Label(janela, text='Digite os valores pedidos abaixo no formato (105000.00, 3850.00)',font=("Helvetica", 10))
 comando.pack(pady = 5)
 
-info1 = Label(janela, text='Digite o Preço que deseja ser notificado para venda de (BTC, ETH):')
-info1.pack(pady = 1)
+info1 = Label(janela, text='Digite o Preço que deseja ser notificado para venda de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
 
-entrada_max = Entry(janela)#caixa de digitação
-entrada_max.pack()
+entrada_max = Entry(janela).pack(pady=3)#caixa de digitação
 # Área para exibir mensagens de erro
-msg_erro = Label(janela, text='', fg='red')
-msg_erro.pack(pady=1)
+msg_erro = Label(janela, text='', fg='red').pack(pady=1)
 
-info2 = Label(janela, text='Digite o Preço que deseja ser notificado para compra de (BTC, ETH):')
-info2.pack(pady = 1)
+info2 = Label(janela, text='Digite o Preço que deseja ser notificado para compra de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
 
-entrada_min = Entry(janela)#caixa de digitação
-entrada_min.pack()
-msg_erro = Label(janela, text='', fg='red')
-msg_erro.pack(pady=1)
+entrada_min = Entry(janela).pack(pady=3)#caixa de digitação
+
+msg_erro = Label(janela, text='', fg='red').pack(pady=1)
 
 #botão de confirmação
-Button(janela, text='OK',command = iniciar_sistema).pack(pady = 5)
+Button(janela, text='OK',bg='#a1a1a1', command = iniciar_sistema).pack(pady = 5)
 
 # Instrução
-info3 =Label(janela, text='Clique em OK pra continuar o sistema')
-info3.pack(pady = 5)
+info3 =Label(janela, text='Clique em OK pra continuar o sistema',font=("Helvetica", 10)).pack(pady = 5)
 
-info4= Label(janela, text='Caso queira parar o programa clique no botão abaixo')
-info4.pack(pady = 5)
-Button(janela, text='Parar', command = fechar_sistema).pack(pady = 5)
+info4= Label(janela, text='Caso queira parar o programa clique no botão abaixo',font=("Helvetica", 10)).pack(pady = 5)
+
+Button(janela, text='Parar',bg='#a1a1a1', command = fechar_sistema).pack(pady = 5)
 
 janela.mainloop()
 
@@ -101,4 +97,3 @@ if sistema_iniciado:
     print('Sistema iniciado com sucesso!')
 else:
     print('Sistema não foi iniciado devido a erros nos valores.')
-
