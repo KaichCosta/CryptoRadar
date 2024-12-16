@@ -73,7 +73,7 @@ def iniciar_sistema():
     if salvar_valores():
         global sistema_iniciado  # Define uma flag global para controle
         sistema_iniciado = True  # Altera o estado da flag
-        janela.iconify()         # Fecha a janela e permite o restante do código ser executado
+        janela.iconify()         # Minimiza a janela e permite o restante do código ser executado
 
 def fechar_sistema():
     global sistema_iniciado
@@ -95,15 +95,19 @@ comando.pack(pady = 5)
 
 info1 = Label(janela, text='Digite o Preço que deseja ser notificado para venda de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
 
-entrada_max = Entry(janela).pack(pady=3)#caixa de digitação
+entrada_max = Entry(janela)
+entrada_max.pack(pady=3)#caixa de digitação
 # Área para exibir mensagens de erro
-msg_erro = Label(janela, text='', fg='red').pack(pady=1)
+msg_erro = Label(janela, text='', fg='red')
+msg_erro.pack(pady=1)
 
 info2 = Label(janela, text='Digite o Preço que deseja ser notificado para compra de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
 
-entrada_min = Entry(janela).pack(pady=3)#caixa de digitação
+entrada_min = Entry(janela)
+entrada_min.pack(pady=3)#caixa de digitação
 
-msg_erro = Label(janela, text='', fg='red').pack(pady=1)
+msg_erro = Label(janela, text='', fg='red')
+msg_erro.pack(pady=1)
 
 #botão de confirmação
 Button(janela, text='OK',bg='#a1a1a1', command = iniciar_sistema).pack(pady = 5)

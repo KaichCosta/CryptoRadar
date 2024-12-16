@@ -64,21 +64,24 @@ janela.title('Preços máximos e mínimos venda e compra de criptos')
 info = Label(janela, text='Favor abrir Whatsapp Web antes de iniciar o programa',fg='red',font=("Helvetica", 12, "underline")).pack(pady = 5)
 #info.config(font=("Verdana", 12, "italic"))
 
-
 comando =Label(janela, text='Digite os valores pedidos abaixo no formato (105000.00, 3850.00)',font=("Helvetica", 10))
 comando.pack(pady = 5)
 
 info1 = Label(janela, text='Digite o Preço que deseja ser notificado para venda de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
 
-entrada_max = Entry(janela).pack(pady=3)#caixa de digitação
+entrada_max = Entry(janela)
+entrada_max.pack(pady=3)#caixa de digitação
 # Área para exibir mensagens de erro
-msg_erro = Label(janela, text='', fg='red').pack(pady=1)
+msg_erro = Label(janela, text='', fg='red')
+msg_erro.pack(pady=1)
 
 info2 = Label(janela, text='Digite o Preço que deseja ser notificado para compra de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
 
-entrada_min = Entry(janela).pack(pady=3)#caixa de digitação
+entrada_min = Entry(janela)
+entrada_min.pack(pady=3)#caixa de digitação
 
-msg_erro = Label(janela, text='', fg='red').pack(pady=1)
+msg_erro = Label(janela, text='', fg='red')
+msg_erro.pack(pady=1)
 
 #botão de confirmação
 Button(janela, text='OK',bg='#a1a1a1', command = iniciar_sistema).pack(pady = 5)
