@@ -25,12 +25,7 @@ symbols = ['btc-usd', 'eth-usd']
 tickers = yf.Tickers(','.join(symbols))
 
 
-#3 definir valor baixo para comprar e valor alto pra vender
-# dar opcão do cliente escolher os valores max, min das criptos ex: limite =int(input'escolha valor min e max de eth e btc'
 
-# Valores pré-programados     
-#limite_max = [105000, 3850]
-#limite_min = [103700, 3830]
 
 # Variáveis globais
 limite_max = []
@@ -47,7 +42,7 @@ def salvar_valores():
 
     valores_max = entrada_max.get()
     valores_min = entrada_min.get()
-    #validação, deu um erro que fechou a janela antes de aparecer o erro escrito na interface
+
     # Converte os valores para float e os armazena nas variáveis
     if ',' in valores_max and ',' in valores_min:
         try:
@@ -77,66 +72,6 @@ def iniciar_sistema():
     if salvar_valores():
         global sistema_iniciado  # Define uma flag global para controle
         sistema_iniciado = True  # Altera o estado da flag
-        threading.Thread(target=manter_sistema).start()
-        print('SISTEMA INICIADO COM SUCESSO!')
-        
-        #janela.destroy()          # Minimiza a janela e permite o restante do código ser executado
-
-def manter_sistema():
-    while sistema_iniciado:
-        print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
-
-
-def fechar_sistema():
-    global sistema_iniciado
-    sistema_iniciado == False
-    janela.destroy()
-    print('SISTEMA FECHADO COM SUCESSO')
-
-
-#JANELA ABERTA
-janela = Tk()
-janela.configure(bg='#f7f7f7')#cor de fundo da janela
-janela.title('Preços máximos e mínimos venda e compra de criptos')
-
-info = Label(janela, text='Favor abrir Whatsapp Web antes de iniciar o programa',fg='red',font=("Helvetica", 12, "underline")).pack(pady = 5)
-#info.config(font=("Verdana", 12, "italic"))
-
-
-comando =Label(janela, text='Digite os valores pedidos abaixo no formato (105000.00, 3850.00)',font=("Helvetica", 10))
-comando.pack(pady = 5)
-
-info1 = Label(janela, text='Digite o Preço que deseja ser notificado para venda de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
-
-entrada_max = Entry(janela)
-entrada_max.pack(pady=3)#caixa de digitação
-# Área para exibir mensagens de erro
-msg_erro = Label(janela, text='', fg='red')
-msg_erro.pack(pady=1)
-
-info2 = Label(janela, text='Digite o Preço que deseja ser notificado para compra de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
-
-entrada_min = Entry(janela)
-entrada_min.pack(pady=3)#caixa de digitação
-
-msg_erro = Label(janela, text='', fg='red')
-msg_erro.pack(pady=1)
-
-#botão de confirmação
-Button(janela, text='OK',bg='#a1a1a1', command = iniciar_sistema).pack(pady = 5)
-
-# Instrução
-info3 =Label(janela, text='Clique em OK pra continuar o sistema',font=("Helvetica", 10)).pack(pady = 5)
-
-info4= Label(janela, text='Caso queira parar o programa clique no botão abaixo',font=("Helvetica", 10)).pack(pady = 5)
-
-Button(janela, text='Parar',bg='#a1a1a1', command = fechar_sistema).pack(pady = 5)
-
-janela.mainloop()
-
-if sistema_iniciado:
-
-    while True:
         ultimo_preco = [
             round(float(tickers.tickers[symbol.upper()].history(period='1d')['Close'].iloc[0]), 2)#round, float e esse ,2 são pra formatar com 2 casas decimais os valores das criptos
             for symbol in symbols
@@ -155,15 +90,15 @@ if sistema_iniciado:
         if preco > max:
             print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
             print(f'\033[1;31m{simbolo}: Preço atual ({preco}) ultrapassou o limite máximo ({max}).\033[0m')
-            #EU IRIA POR TODA ESSA PARTE DE ANÁLISE DE NOME E TELEFONE FORA DO (IF), MAS ISSO FARIA QUE SE REPETISSE TODA HORA POR CAUSA DO (WHILE) E NÃO SOMENTE NA COMPRA OU VENDA
+
             hora = datetime.now()
 
-            webbrowser.open('https://web.whatsapp.com/')
+            #webbrowser.open('https://web.whatsapp.com/')
             time.sleep(10)
 
             workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
             pagina_contatos = workbook['Plan1']
-#4 criar sistema de envio de notificação pro zap CRIAR UM GRUPO E POR MEU PAI E EU PRA RECEBER ESSAS NOTIFICAÇÕES
+#4 CRIAR UM GRUPO E POR MEU PAI E EU PRA RECEBER ESSAS NOTIFICAÇÕES
             for linha in pagina_contatos.iter_rows(min_row=5):
                 #nome, telefone
                 nome = linha[2].value    
@@ -196,7 +131,7 @@ if sistema_iniciado:
             print(f'\033[1;31m{simbolo}: Preço atual ({preco}) ultrapassou o limite máximo ({min}).\033[0m')
             hora = datetime.now()
 
-            webbrowser.open('https://web.whatsapp.com/')
+            #webbrowser.open('https://web.whatsapp.com/')
             time.sleep(10)
 
             workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
@@ -228,5 +163,70 @@ if sistema_iniciado:
                 print('FINALIZADO')
                 break
         else:
-            time.sleep(300)           
-            
+            time.sleep(300)
+        threading.Thread(target=manter_sistema).start()
+        
+        print('SISTEMA INICIADO COM SUCESSO!')
+
+def fechar_sistema():
+    global sistema_iniciado
+    sistema_iniciado = False
+    print('SISTEMA FECHADO COM SUCESSO')
+    janela.destroy()
+
+def manter_sistema():
+    while True:
+        if sistema_iniciado: 
+            print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
+        else:
+            print('SISTEMA DESLIGADO COM SUCESSO')
+            break     
+        time.sleep(10)
+
+#JANELA ABERTA
+janela = Tk()
+janela.configure(bg='#f7f7f7')#cor de fundo da janela
+janela.title('Preços máximos e mínimos venda e compra de criptos')
+
+info = Label(janela, text='Favor abrir Whatsapp Web antes de iniciar o programa',fg='red',font=("Helvetica", 12, "underline")).pack(pady = 5)
+#info.config(font=("Verdana", 12, "italic"))
+
+#3 definir valor baixo para comprar e valor alto pra vender
+# dar opcão do cliente escolher os valores max, min das criptos ex: limite =int(input'escolha valor min e max de eth e btc'
+
+comando =Label(janela, text='Digite os valores pedidos abaixo no formato (105000.00, 3850.00)',font=("Helvetica", 10))
+comando.pack(pady = 5)
+
+info1 = Label(janela, text='Digite o Preço que deseja ser notificado para venda de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
+
+entrada_max = Entry(janela)
+entrada_max.pack(pady=3)#caixa de digitação
+# Área para exibir mensagens de erro
+msg_erro = Label(janela, text='', fg='red')
+msg_erro.pack(pady=1)
+
+info2 = Label(janela, text='Digite o Preço que deseja ser notificado para compra de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
+
+entrada_min = Entry(janela)
+entrada_min.pack(pady=3)#caixa de digitação
+
+msg_erro = Label(janela, text='', fg='red')
+msg_erro.pack(pady=1)
+
+#botão de confirmação
+Button(janela, text='OK',bg='#a1a1a1', command = iniciar_sistema).pack(pady = 5)
+
+# Instrução
+info3 =Label(janela, text='Clique em OK pra continuar o sistema',font=("Helvetica", 10)).pack(pady = 5)
+
+info4= Label(janela, text='Caso queira parar o programa clique no botão abaixo',font=("Helvetica", 10)).pack(pady = 5)
+
+Button(janela, text='Parar',bg='#a1a1a1', command = fechar_sistema).pack(pady = 5)
+
+janela.protocol("WM_DELETE_WINDOW", fechar_sistema)
+
+# Executar a interface gráfica em paralelo ao loop principal contido em manter sistema
+janela.after(100, manter_sistema)  # Executa o loop principal depois de 100ms = 10s
+janela.mainloop()
+
+
