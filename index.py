@@ -17,6 +17,7 @@ from urllib.parse import quote
 import webbrowser
 import pyautogui
 from tkinter import *
+import threading
 
 
 #2 buscar preços bitcoin e ações atuais
@@ -35,6 +36,8 @@ tickers = yf.Tickers(','.join(symbols))
 limite_max = []
 limite_min = []
 sistema_iniciado = False
+
+
 #TRATAMENTO DE ERRO DECENTE
 def salvar_valores():
     # Lê os valores inseridos pelo usuário
@@ -55,6 +58,7 @@ def salvar_valores():
                 limite_min = valores_min
                 print(f"Limite Máximo: {limite_max}")
                 print(f"Limite Mínimo: {limite_min}")
+                print('VALORES SALVOS COM SUCESSO!')
                 msg_erro.config(text='Valores válidos!', fg='green')
                 return True  # Nenhum erro
             else:
@@ -73,10 +77,19 @@ def iniciar_sistema():
     if salvar_valores():
         global sistema_iniciado  # Define uma flag global para controle
         sistema_iniciado = True  # Altera o estado da flag
-        janela.iconify()         # Minimiza a janela e permite o restante do código ser executado
+        threading.Thread(target=manter_sistema).start()
+        print('SISTEMA INICIADO COM SUCESSO!')
+        
+        #janela.destroy()          # Minimiza a janela e permite o restante do código ser executado
+
+def manter_sistema():
+    while sistema_iniciado:
+        print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
+
 
 def fechar_sistema():
     global sistema_iniciado
+    sistema_iniciado == False
     janela.destroy()
     print('SISTEMA FECHADO COM SUCESSO')
 
