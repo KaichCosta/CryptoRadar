@@ -185,19 +185,27 @@ def manter_sistema():
 
 #JANELA ABERTA
 janela = Tk()
+
+janela.iconbitmap('icone-sistema.ico')
+
 janela.configure(bg='#f7f7f7')#cor de fundo da janela
 janela.title('Preços máximos e mínimos venda e compra de criptos')
 
-info = Label(janela, text='Favor abrir Whatsapp Web antes de iniciar o programa',fg='red',font=("Helvetica", 12, "underline")).pack(pady = 5)
-#info.config(font=("Verdana", 12, "italic"))
+info = Label(janela,
+    text='Favor abrir Whatsapp Web antes de iniciar o programa',
+    fg='red',font=("Times New Roman", 12, "underline")
+    ).pack(pady = 5)
+
 
 #3 definir valor baixo para comprar e valor alto pra vender
-# dar opcão do cliente escolher os valores max, min das criptos ex: limite =int(input'escolha valor min e max de eth e btc'
-
-comando =Label(janela, text='Digite os valores pedidos abaixo no formato (105000.00, 3850.00)',font=("Helvetica", 10))
+comando =Label(janela,
+    text='Digite os valores pedidos abaixo no formato (105000.00, 3850.00)',
+    font=("Cambria", 11))
 comando.pack(pady = 5)
 
-info1 = Label(janela, text='Digite o Preço que deseja ser notificado para venda de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
+info1 = Label(janela,
+    text='Digite o Preço que deseja ser notificado para venda de (BTC, ETH):',
+    font=("Cambria", 11)).pack(pady = 1)
 
 entrada_max = Entry(janela)
 entrada_max.pack(pady=3)#caixa de digitação
@@ -205,23 +213,36 @@ entrada_max.pack(pady=3)#caixa de digitação
 msg_erro = Label(janela, text='', fg='red')
 msg_erro.pack(pady=1)
 
-info2 = Label(janela, text='Digite o Preço que deseja ser notificado para compra de (BTC, ETH):',font=("Helvetica", 10)).pack(pady = 1)
+info2 = Label(janela,
+    text='Digite o Preço que deseja ser notificado para compra de (BTC, ETH):',
+    font=("Cambria", 11)).pack(pady = 1)
 
 entrada_min = Entry(janela)
 entrada_min.pack(pady=3)#caixa de digitação
 
-msg_erro = Label(janela, text='', fg='red')
+msg_erro = Label(janela,
+    text='',
+    fg='red')
 msg_erro.pack(pady=1)
 
 #botão de confirmação
-Button(janela, text='OK',bg='#a1a1a1', command = iniciar_sistema).pack(pady = 5)
+iniciar = Button(janela,
+    text='OK',bg='#a1a1a1',
+    command = iniciar_sistema).pack(pady = 5)
 
 # Instrução
-info3 =Label(janela, text='Clique em OK pra continuar o sistema',font=("Helvetica", 10)).pack(pady = 5)
+info3 =Label(janela,
+    text='Clique em OK pra continuar o sistema',
+    font=("Cambria", 11)).pack(pady = 5)
 
-info4= Label(janela, text='Caso queira parar o programa clique no botão abaixo',font=("Helvetica", 10)).pack(pady = 5)
+info4= Label(janela,
+    text='Caso queira parar o programa clique no botão abaixo',
+    font=("Cambria", 11)).pack(pady = 5)
 
-Button(janela, text='Parar',bg='#a1a1a1', command = fechar_sistema).pack(pady = 5)
+parar = Button(janela,
+    text='Parar',
+    bg='#a1a1a1',
+    command = fechar_sistema).pack(pady = 5)
 
 janela.protocol("WM_DELETE_WINDOW", fechar_sistema)
 
