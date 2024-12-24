@@ -1,38 +1,39 @@
-import time
-from datetime import datetime
-import os
-import yfinance as yf
-import openpyxl
-from urllib.parse import quote
-import webbrowser
-import pyautogui
-from tkinter import *
+import tkinter as tk
 import requests
+from datetime import datetime
 
-#2 buscar preços bitcoin e ações atuais
-
+# Função para buscar os preços e atualizar o Label
 def atualizar_preco():
-        
-        requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
+    global infopreco, u  # Declaração de variável global
 
-        requisicao_dic = requisicao.json()
-        preco_btc = requisicao_dic['BTCUSD']['bid']
-        preco_eth = requisicao_dic['ETHUSD']['bid']
-        texto = f'''
-        BTC: {preco_btc}
-        ETH: {preco_eth}
-        '''
-        ultimo_preco = [("BTC", preco_btc), ("ETH", preco_eth)]
-        print(f'\033[1;32m{datetime.now()}\033[0m')
-        print(ultimo_preco)
-        print('\033[1;32m--BITCOIN--ETHEREUM\033[0m')
-        print(texto)
-atualizar_preco()
-def manter_sistema():
-    while True:
-        if sistema_iniciado: 
-            print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
-        else:
-            print('SISTEMA DESLIGADO COM SUCESSO')
-            break     
-        time.sleep(10)
+    requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
+    requisicao_dic = requisicao.json()
+
+    preco_btc = round(float(requisicao_dic['BTCUSD']['bid']), 2)
+    preco_eth = round(float(requisicao_dic['ETHUSD']['bid']), 2)
+    u =datetime.now()
+    texto = f'''
+    BTC: {preco_btc}
+    ETH: {preco_eth}
+    {u.strftime("%H:%M:%S")}
+    '''
+    print(texto)
+
+    # Atualiza o texto no Label
+    infopreco.config(text=texto)
+
+# Criação da interface Tkinter
+janela = tk.Tk()
+janela.title("Preço das Criptomoedas")
+janela.geometry("300x200")
+
+# Label inicial para exibir as informações dos preços
+infopreco = tk.Label(janela, text="Clique no botão para atualizar os preços", font=("Helvetica", 12), justify="left")
+infopreco.pack(pady=20)
+
+# Botão para atualizar os preços manualmente
+botao_atualizar = tk.Button(janela, text="Atualizar Preços", command=atualizar_preco)
+botao_atualizar.pack(pady=10)
+
+# Inicializando o loop da interface
+janela.mainloop()

@@ -12,22 +12,28 @@ import requests
 #2 buscar preços bitcoin e ações atuais
 #isso é a parte de def iniviar sistema() ultimo preco round float tickers
 def atualizar_preco():
+    global infohora
+    global infopreco
     requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
-    global preco_btc, preco_eth
+    
+    global preco_btc, preco_eth 
 
     requisicao_dic = requisicao.json()
     preco_btc = round(float(requisicao_dic['BTCUSD']['bid']),2)
     preco_eth = round(float(requisicao_dic['ETHUSD']['bid']),2)
     
     texto = f'''
-    BTC: {preco_btc}
-    ETH: {preco_eth}
+    BTC:{preco_btc}
+    ETH:{preco_eth}
     '''
-
     print(texto)
+    infopreco.config(text=texto)
+    hora = datetime.now()
+    infohora.config(text=f'{hora.strftime("%H:%M:%S")}')
+
 # Variáveis globais
-preco_btc = []
-preco_eth = []
+#preco_btc = []
+#preco_eth = []
 limite_max = []
 limite_min = []
 sistema_iniciado = False
@@ -186,10 +192,7 @@ def manter_sistema():
         time.sleep(180)
 
 janela = Tk()#janela aberta
-atualizar_preco()
-
 janela.title('Alertas compra e venda de criptos')
-
 janela.iconbitmap('icone-sistema.ico')
 
 info = Label(janela,
@@ -197,18 +200,20 @@ info = Label(janela,
     fg='red',font=("Times New Roman", 12, "underline")
     ).pack(pady = 5)
 
-infohora = Label(janela, text=f'{datetime.now()}',
+hora = datetime.now()
+infohora = Label(janela, text=f'{hora.strftime('%H:%M:%S')}',
     font=("Helvetica", 12,
-    "underline")).pack(pady = 5)
-    
-infopreco = Label(janela, text= '',
-    font=("Times", 12,
-    "underline")).pack(pady = 5)
+    "underline"))
+infohora.pack(pady=1)
+
+infopreco = Label(janela, text="Clique no botão para atualizar os preços", font=("Helvetica", 12), justify="left")
+infopreco.pack(pady=5)
 
 atualiza_preco = Button(janela,
-                        text='Atualizar',
-                        bg='#a1a1a1',
-                        font=('Times', 10), command=atualizar_preco).pack(pady=5)  
+    text='Atualizar',
+    bg='#a1a1a1',
+    font=('Times', 10), command=atualizar_preco)
+atualiza_preco.pack(pady=5)  
 #se clicar no botão posso fazer ativar uma função que é exatamente a busca de preço atual de crypto igaul o que ja tem
 
 #3 definir valor baixo para comprar e valor alto pra vender
