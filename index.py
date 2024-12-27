@@ -2,7 +2,7 @@
 #   PASSOS
             
 #5 criar um executavel pra isso tudo                               
-#6 criar sistema pra enviar pro celular
+#6 criar sistema a enviar pro celular
 #    o1 qualquer coisa criar outro arquivo pra criar um apk pro celular do meu pai e executar tudo pelo celular do meu pai e fazer ele receber as notificaçoes
 #    o2 no apk, ter opção de parar a procura de preço  
 #7 enviar notificação pelo email é melhor ou por zap
@@ -18,20 +18,33 @@ import webbrowser
 import pyautogui
 from tkinter import *
 import threading
-
+import requests
 
 #2 buscar preços bitcoin e ações atuais
-symbols = ['btc-usd', 'eth-usd']
-tickers = yf.Tickers(','.join(symbols))
+def atualizar_preco():
+    global infohora
+    global infopreco
+    requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
+    
+    global preco_btc, preco_eth 
 
-
-
+    requisicao_dic = requisicao.json()
+    preco_btc = round(float(requisicao_dic['BTCUSD']['bid']),2)
+    preco_eth = round(float(requisicao_dic['ETHUSD']['bid']),2)
+    
+    texto = f'''
+    BTC:{preco_btc}
+    ETH:{preco_eth}
+    '''
+    print(texto)
+    infopreco.config(text=texto)
+    hora = datetime.now()
+    infohora.config(text=f'{hora.strftime("%H:%M:%S")}')
 
 # Variáveis globais
 limite_max = []
 limite_min = []
 sistema_iniciado = False
-
 
 #TRATAMENTO DE ERRO DECENTE
 def salvar_valores():
@@ -72,24 +85,19 @@ def iniciar_sistema():
     if salvar_valores():
         global sistema_iniciado  # Define uma flag global para controle
         sistema_iniciado = True  # Altera o estado da flag
-        ultimo_preco = [
-            round(float(tickers.tickers[symbol.upper()].history(period='1d')['Close'].iloc[0]), 2)#round, float e esse ,2 são pra formatar com 2 casas decimais os valores das criptos
-            for symbol in symbols
-        ]
+        ultimo_preco = [("BTC", preco_btc), ("ETH", preco_eth)]
+        
         print(f'\033[1;32m{datetime.now()}\033[0m')
         print(ultimo_preco)
         print('\033[1;32m--BITCOIN--ETHEREUM\033[0m')
 
-        for i, preco in enumerate(ultimo_preco):
-            simbolo = symbols[i].upper()
-
+        for i, (moeda, preco) in enumerate(ultimo_preco):
             max = limite_max[i]
-
             min = limite_min[i]
 
         if preco > max:
             print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
-            print(f'\033[1;31m{simbolo}: Preço atual ({preco}) ultrapassou o limite máximo ({max}).\033[0m')
+            print(f'\033[1;31m{moeda}: Preço atual ({preco}) ultrapassou o limite máximo ({max}).\033[0m')
 
             hora = datetime.now()
 
@@ -105,19 +113,19 @@ def iniciar_sistema():
                 telefone = linha[3].value
 
                 #mensagem que será enviada aos contatos
-                msg = f'Olá {nome}, hora de vender {simbolo}, {hora.strftime('%d/%m/%Y, %H:%M')}'
+                msg = f'Olá {nome}, hora de vender {moeda}, {hora.strftime('%d/%m/%Y, %H:%M')}'
 
                 #link que abrirá o zap
                 link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
 
                 webbrowser.open(link_mensagem_zap)
 
-                time.sleep(15)
+                time.sleep(20)
                 pyautogui.press('enter')
                 time.sleep(5)
 
                 pyautogui.hotkey('ctrl', 'w')
-                time.sleep(2)
+                time.sleep(5)
 
                 pyautogui.hotkey('ctrl', 'w')
                 time.sleep(5)
@@ -128,7 +136,7 @@ def iniciar_sistema():
         #==============================================
         elif preco < min:
             print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
-            print(f'\033[1;31m{simbolo}: Preço atual ({preco}) ultrapassou o limite máximo ({min}).\033[0m')
+            print(f'\033[1;31m{moeda}: Preço atual ({ultimo_preco}) ultrapassou o limite máximo ({min}).\033[0m')
             hora = datetime.now()
 
             #webbrowser.open('https://web.whatsapp.com/')
@@ -143,19 +151,19 @@ def iniciar_sistema():
                 telefone = linha[3].value
 
                 #mensagem que será enviada aos contatos
-                msg = f'Olá {nome}, hora de comprar {simbolo}, {hora.strftime('%d/%m/%Y, %H:%M')}'
+                msg = f'Olá {nome}, hora de comprar {moeda}, {hora.strftime('%d/%m/%Y, %H:%M')}'
 
                 #link que abrirá o zap
                 link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
 
                 webbrowser.open(link_mensagem_zap)
 
-                time.sleep(15)
+                time.sleep(20)
                 pyautogui.press('enter')
                 time.sleep(5)
 
                 pyautogui.hotkey('ctrl', 'w')
-                time.sleep(2)
+                time.sleep(5)
 
                 pyautogui.hotkey('ctrl', 'w')
                 time.sleep(5)
@@ -175,27 +183,41 @@ def fechar_sistema():
     janela.destroy()
 
 def manter_sistema():
-    while True:
-        if sistema_iniciado: 
-            print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
-        else:
-            print('SISTEMA DESLIGADO COM SUCESSO')
-            break     
-        time.sleep(10)
+    if sistema_iniciado: 
+        print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
+        janela.after(180000, manter_sistema)#Chama de novo após 180 segundos = 3 min
+        iniciar_sistema()
+    else:
+        print('SISTEMA DESLIGADO COM SUCESSO')
+
 
 #JANELA ABERTA
-janela = Tk()
-
+janela = Tk()#janela aberta
+janela.title('Alertas compra e venda de criptos')
 janela.iconbitmap('icone-sistema.ico')
-
 janela.configure(bg='#f7f7f7')#cor de fundo da janela
-janela.title('Preços máximos e mínimos venda e compra de criptos')
 
 info = Label(janela,
     text='Favor abrir Whatsapp Web antes de iniciar o programa',
     fg='red',font=("Times New Roman", 12, "underline")
     ).pack(pady = 5)
 
+hora = datetime.now()
+
+infohora = Label(janela, text=f'{hora.strftime('%H:%M:%S')}',
+    font=("Helvetica", 12,
+    "underline"))
+infohora.pack(pady=1)
+
+infopreco = Label(janela, text="Clique no botão para atualizar os preços", font=("Helvetica", 12), justify="left")
+infopreco.pack(pady=5)
+
+atualiza_preco = Button(janela,
+    text='Atualizar e salvar preços',
+    bg='#a1a1a1',
+    font=('Times', 10), command=atualizar_preco)
+atualiza_preco.pack(pady=5)  
+#se clicar no botão posso fazer ativar uma função que é exatamente a busca de preço atual de crypto igaul o que ja tem
 
 #3 definir valor baixo para comprar e valor alto pra vender
 comando =Label(janela,
@@ -249,5 +271,3 @@ janela.protocol("WM_DELETE_WINDOW", fechar_sistema)
 # Executar a interface gráfica em paralelo ao loop principal contido em manter sistema
 janela.after(100, manter_sistema)  # Executa o loop principal depois de 100ms = 10s
 janela.mainloop()
-
-

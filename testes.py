@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 import os
+import yfinance as yf
 import openpyxl
 from urllib.parse import quote
 import webbrowser
@@ -10,7 +11,6 @@ import threading
 import requests
 
 #2 buscar preços bitcoin e ações atuais
-#isso é a parte de def iniviar sistema() ultimo preco round float tickers
 def atualizar_preco():
     global infohora
     global infopreco
@@ -32,16 +32,9 @@ def atualizar_preco():
     infohora.config(text=f'{hora.strftime("%H:%M:%S")}')
 
 # Variáveis globais
-#preco_btc = []
-#preco_eth = []
 limite_max = []
 limite_min = []
 sistema_iniciado = False
-
-#3 definir valor baixo para comprar e valor alto pra vender
-# dar opcão do cliente escolher os valores max, min das criptos ex: limite =int(input'escolha valor min e max de eth e btc')    
-limite_max = [105000, 3850]
-limite_min = [103700, 3830]
 
 #TRATAMENTO DE ERRO DECENTE
 def salvar_valores():
@@ -82,17 +75,14 @@ def iniciar_sistema():
     if salvar_valores():
         global sistema_iniciado  # Define uma flag global para controle
         sistema_iniciado = True  # Altera o estado da flag
-
         ultimo_preco = [("BTC", preco_btc), ("ETH", preco_eth)]
         
         print(f'\033[1;32m{datetime.now()}\033[0m')
         print(ultimo_preco)
         print('\033[1;32m--BITCOIN--ETHEREUM\033[0m')
 
-
         for i, (moeda, preco) in enumerate(ultimo_preco):
             max = limite_max[i]
-
             min = limite_min[i]
 
         if preco > max:
@@ -131,12 +121,12 @@ def iniciar_sistema():
                 time.sleep(5)
 
                 print('FINALIZADO')
-                break
+
         #==============================================
         #==============================================
         elif preco < min:
             print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
-            print(f'\033[1;31m{moeda}: Preço atual ({preco}) ultrapassou o limite máximo ({min}).\033[0m')
+            print(f'\033[1;31m{moeda}: Preço atual ({ultimo_preco}) ultrapassou o limite máximo ({min}).\033[0m')
             hora = datetime.now()
 
             #webbrowser.open('https://web.whatsapp.com/')
@@ -151,7 +141,7 @@ def iniciar_sistema():
                 telefone = linha[3].value
 
                 #mensagem que será enviada aos contatos
-                msg = f'Olá {nome}, hora de comprar {ultimo_preco}, {hora.strftime('%d/%m/%Y, %H:%M')}'
+                msg = f'Olá {nome}, hora de comprar {moeda}, {hora.strftime('%d/%m/%Y, %H:%M')}'
 
                 #link que abrirá o zap
                 link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
@@ -169,7 +159,7 @@ def iniciar_sistema():
                 time.sleep(5)
 
                 print('FINALIZADO')
-                break
+                
         else:
             time.sleep(300)
         threading.Thread(target=manter_sistema).start()
@@ -183,17 +173,19 @@ def fechar_sistema():
     janela.destroy()
 
 def manter_sistema():
-    while True:
-        if sistema_iniciado: 
-            print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
-        else:
-            print('SISTEMA DESLIGADO COM SUCESSO')
-            break     
-        time.sleep(180)
+    if sistema_iniciado: 
+        print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
+        janela.after(180000, manter_sistema)#Chama de novo após 180 segundos = 3 min
+        iniciar_sistema()
+    else:
+        print('SISTEMA DESLIGADO COM SUCESSO')
 
+
+#JANELA ABERTA
 janela = Tk()#janela aberta
 janela.title('Alertas compra e venda de criptos')
 janela.iconbitmap('icone-sistema.ico')
+janela.configure(bg='#f7f7f7')#cor de fundo da janela
 
 info = Label(janela,
     text='Favor abrir Whatsapp Web antes de iniciar o programa',
@@ -201,6 +193,7 @@ info = Label(janela,
     ).pack(pady = 5)
 
 hora = datetime.now()
+
 infohora = Label(janela, text=f'{hora.strftime('%H:%M:%S')}',
     font=("Helvetica", 12,
     "underline"))
@@ -210,7 +203,7 @@ infopreco = Label(janela, text="Clique no botão para atualizar os preços", fon
 infopreco.pack(pady=5)
 
 atualiza_preco = Button(janela,
-    text='Atualizar',
+    text='Atualizar e salvar preços',
     bg='#a1a1a1',
     font=('Times', 10), command=atualizar_preco)
 atualiza_preco.pack(pady=5)  
@@ -268,9 +261,3 @@ janela.protocol("WM_DELETE_WINDOW", fechar_sistema)
 # Executar a interface gráfica em paralelo ao loop principal contido em manter sistema
 janela.after(100, manter_sistema)  # Executa o loop principal depois de 100ms = 10s
 janela.mainloop()
-
-if sistema_iniciado:
-    print(f"Valores salvos:\nLimite Máximo: {limite_max}\nLimite Mínimo: {limite_min}")
-    print('Sistema iniciado com sucesso!')
-else:
-    print('Sistema não foi iniciado.')
