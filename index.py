@@ -22,24 +22,26 @@ import requests
 
 #2 buscar preços bitcoin e ações atuais
 def atualizar_preco():
-    global infohora
-    global infopreco
-    requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
-    
-    global preco_btc, preco_eth 
+    def tarefa():
+        global infohora
+        global infopreco
+        requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
+        
+        global preco_btc, preco_eth 
 
-    requisicao_dic = requisicao.json()
-    preco_btc = round(float(requisicao_dic['BTCUSD']['bid']),2)
-    preco_eth = round(float(requisicao_dic['ETHUSD']['bid']),2)
-    
-    texto = f'''
-    BTC:{preco_btc}
-    ETH:{preco_eth}
-    '''
-    print(texto)
-    infopreco.config(text=texto)
-    hora = datetime.now()
-    infohora.config(text=f'{hora.strftime("%H:%M:%S")}')
+        requisicao_dic = requisicao.json()
+        preco_btc = round(float(requisicao_dic['BTCUSD']['bid']),2)
+        preco_eth = round(float(requisicao_dic['ETHUSD']['bid']),2)
+        
+        texto = f'''
+        BTC:{preco_btc}
+        ETH:{preco_eth}
+        '''
+        print(texto)
+        infopreco.config(text=texto)
+        hora = datetime.now()
+        infohora.config(text=f'{hora.strftime("%H:%M:%S")}')
+    threading.Thread(target=tarefa).start()
 
 # Variáveis globais
 limite_max = []
@@ -82,99 +84,101 @@ def salvar_valores():
         return False      
 
 def iniciar_sistema():
-    if salvar_valores():
-        global sistema_iniciado  # Define uma flag global para controle
-        sistema_iniciado = True  # Altera o estado da flag
-        ultimo_preco = [("BTC", preco_btc), ("ETH", preco_eth)]
-        
-        print(f'\033[1;32m{datetime.now()}\033[0m')
-        print(ultimo_preco)
-        print('\033[1;32m--BITCOIN--ETHEREUM\033[0m')
+    def tarefa():
+        if salvar_valores():
+            global sistema_iniciado  # Define uma flag global para controle
+            sistema_iniciado = True  # Altera o estado da flag
+            ultimo_preco = [("BTC", preco_btc), ("ETH", preco_eth)]
+            
+            print(f'\033[1;32m{datetime.now()}\033[0m')
+            print(ultimo_preco)
+            print('\033[1;32m--BITCOIN--ETHEREUM\033[0m')
 
-        for i, (moeda, preco) in enumerate(ultimo_preco):
-            max = limite_max[i]
-            min = limite_min[i]
+            for i, (moeda, preco) in enumerate(ultimo_preco):
+                max = limite_max[i]
+                min = limite_min[i]
 
-        if preco > max:
-            print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
-            print(f'\033[1;31m{moeda}: Preço atual ({preco}) ultrapassou o limite máximo ({max}).\033[0m')
+            if preco > max:
+                print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
+                print(f'\033[1;31m{moeda}: Preço atual ({preco}) ultrapassou o limite máximo ({max}).\033[0m')
 
-            hora = datetime.now()
+                hora = datetime.now()
 
-            #webbrowser.open('https://web.whatsapp.com/')
-            time.sleep(10)
+                #webbrowser.open('https://web.whatsapp.com/')
+                time.sleep(10)
 
-            workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
-            pagina_contatos = workbook['Plan1']
-#4 CRIAR UM GRUPO E POR MEU PAI E EU PRA RECEBER ESSAS NOTIFICAÇÕES
-            for linha in pagina_contatos.iter_rows(min_row=5):
-                #nome, telefone
-                nome = linha[2].value    
-                telefone = linha[3].value
+                workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
+                pagina_contatos = workbook['Plan1']
+    #4 CRIAR UM GRUPO E POR MEU PAI E EU PRA RECEBER ESSAS NOTIFICAÇÕES
+                for linha in pagina_contatos.iter_rows(min_row=5):
+                    #nome, telefone
+                    nome = linha[2].value    
+                    telefone = linha[3].value
 
-                #mensagem que será enviada aos contatos
-                msg = f'Olá {nome}, hora de vender {moeda}, {hora.strftime('%d/%m/%Y, %H:%M')}'
+                    #mensagem que será enviada aos contatos
+                    msg = f'Olá {nome}, hora de vender {moeda}, {hora.strftime('%d/%m/%Y, %H:%M')}'
 
-                #link que abrirá o zap
-                link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
+                    #link que abrirá o zap
+                    link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
 
-                webbrowser.open(link_mensagem_zap)
+                    webbrowser.open(link_mensagem_zap)
 
-                time.sleep(20)
-                pyautogui.press('enter')
-                time.sleep(5)
+                    time.sleep(20)
+                    pyautogui.press('enter')
+                    time.sleep(5)
 
-                pyautogui.hotkey('ctrl', 'w')
-                time.sleep(5)
+                    pyautogui.hotkey('ctrl', 'w')
+                    time.sleep(5)
 
-                pyautogui.hotkey('ctrl', 'w')
-                time.sleep(5)
+                    pyautogui.hotkey('ctrl', 'w')
+                    time.sleep(5)
 
-                print('FINALIZADO')
-                break
-        #==============================================
-        #==============================================
-        elif preco < min:
-            print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
-            print(f'\033[1;31m{moeda}: Preço atual ({ultimo_preco}) ultrapassou o limite máximo ({min}).\033[0m')
-            hora = datetime.now()
+                    print('FINALIZADO')
 
-            #webbrowser.open('https://web.whatsapp.com/')
-            time.sleep(10)
+            #==============================================
+            #==============================================
+            elif preco < min:
+                print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
+                print(f'\033[1;31m{moeda}: Preço atual ({ultimo_preco}) ultrapassou o limite máximo ({min}).\033[0m')
+                hora = datetime.now()
 
-            workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
-            pagina_contatos = workbook['Plan1']
+                #webbrowser.open('https://web.whatsapp.com/')
+                time.sleep(10)
 
-            for linha in pagina_contatos.iter_rows(min_row=5):
-                #nome, telefone
-                nome = linha[2].value    
-                telefone = linha[3].value
+                workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
+                pagina_contatos = workbook['Plan1']
 
-                #mensagem que será enviada aos contatos
-                msg = f'Olá {nome}, hora de comprar {moeda}, {hora.strftime('%d/%m/%Y, %H:%M')}'
+                for linha in pagina_contatos.iter_rows(min_row=5):
+                    #nome, telefone
+                    nome = linha[2].value    
+                    telefone = linha[3].value
 
-                #link que abrirá o zap
-                link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
+                    #mensagem que será enviada aos contatos
+                    msg = f'Olá {nome}, hora de comprar {moeda}, {hora.strftime('%d/%m/%Y, %H:%M')}'
 
-                webbrowser.open(link_mensagem_zap)
+                    #link que abrirá o zap
+                    link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
 
-                time.sleep(20)
-                pyautogui.press('enter')
-                time.sleep(5)
+                    webbrowser.open(link_mensagem_zap)
 
-                pyautogui.hotkey('ctrl', 'w')
-                time.sleep(5)
+                    time.sleep(20)
+                    pyautogui.press('enter')
+                    time.sleep(5)
 
-                pyautogui.hotkey('ctrl', 'w')
-                time.sleep(5)
+                    pyautogui.hotkey('ctrl', 'w')
+                    time.sleep(5)
 
-                print('FINALIZADO')
-                break
-        else:
-            time.sleep(300)
-        threading.Thread(target=manter_sistema).start()
-        
-        print('SISTEMA INICIADO COM SUCESSO!')
+                    pyautogui.hotkey('ctrl', 'w')
+                    time.sleep(5)
+
+                    print('FINALIZADO')
+                    
+            else:
+                time.sleep(300)
+            threading.Thread(target=manter_sistema).start()
+            
+            print('SISTEMA INICIADO COM SUCESSO!')
+    threading.Thread(target=tarefa).start()
 
 def fechar_sistema():
     global sistema_iniciado
@@ -183,13 +187,14 @@ def fechar_sistema():
     janela.destroy()
 
 def manter_sistema():
-    if sistema_iniciado: 
-        print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
-        janela.after(180000, manter_sistema)#Chama de novo após 180 segundos = 3 min
-        iniciar_sistema()
-    else:
-        print('SISTEMA DESLIGADO COM SUCESSO')
-
+    def tarefa():
+        if sistema_iniciado: 
+            print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
+            janela.after(300000, manter_sistema)#Chama de novo após 300 segundos
+            iniciar_sistema()
+        else:
+            print('SISTEMA DESLIGADO COM SUCESSO arruma isso Kaich')
+    threading.Thread(target=tarefa).start()
 
 #JANELA ABERTA
 janela = Tk()#janela aberta
@@ -241,6 +246,8 @@ info2 = Label(janela,
 
 entrada_min = Entry(janela)
 entrada_min.pack(pady=3)#caixa de digitação
+msg_erro = Label(janela, text='', fg='red')
+msg_erro.pack(pady=1)
 
 msg_erro = Label(janela,
     text='',

@@ -26,8 +26,8 @@ tickers = yf.Tickers(','.join(symbols))
 # dar opcão do cliente escolher os valores max, min das criptos ex: limite =int(input'escolha valor min e max de eth e btc'
 
 # Valores pré-programados     
-limite_max = [105000, 3850]
-limite_min = [103700, 3830]
+limite_max = [1050, 550]
+limite_min = [103, 38]
 
 while True:
     ultimo_preco = [
@@ -37,7 +37,7 @@ while True:
     print(f'\033[1;32m{datetime.now()}\033[0m')
     print(ultimo_preco)
     print('\033[1;32m--BITCOIN--ETHEREUM\033[0m')
-    time.sleep (5)
+    time.sleep (300)
 
     #4 criar sistema de envio de notificação pro zap CRIAR UM GRUPO E POR MEU PAI E EU PRA RECEBER ESSAS NOTIFICAÇÕES  
     for i, preco in enumerate(ultimo_preco):
