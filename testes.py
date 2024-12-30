@@ -7,25 +7,29 @@ from urllib.parse import quote
 import webbrowser
 import pyautogui
 from tkinter import *
+from tkinter import messagebox
 import threading
 import requests
 
+
 #2 buscar preços bitcoin e ações atuais
+precos = {
+    "BTC": {"compra": 0, "venda": 0},  # Armazena preço de compra e venda do Bitcoin
+    "ETH": {"compra": 0, "venda": 0}   # Armazena preço de compra e venda do Ethereum
+}
 def atualizar_preco():
     def tarefa():
-        global infohora
-        global infopreco
+        global precos, infohora
         requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
-        
-        global preco_btc, preco_eth 
-
         requisicao_dic = requisicao.json()
-        preco_btc = round(float(requisicao_dic['BTCUSD']['bid']),2)
-        preco_eth = round(float(requisicao_dic['ETHUSD']['bid']),2)
+        precos["BTC"]["compra"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
+        precos["BTC"]["venda"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
+        precos["ETH"]["compra"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
+        precos["ETH"]["venda"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
         
         texto = f'''
-        BTC:{preco_btc}
-        ETH:{preco_eth}
+        BTC - Compra: {precos["BTC"]["compra"]}, Venda: {precos["BTC"]["venda"]}]
+        ETH - Compra: {precos["ETH"]["compra"]}, Venda: {precos["ETH"]["venda"]}]
         '''
         print(texto)
         infopreco.config(text=texto)
@@ -34,45 +38,30 @@ def atualizar_preco():
     threading.Thread(target=tarefa).start()
 
 # Variáveis globais
-limite_max = []
-limite_min = []
 sistema_iniciado = False
 
 #TRATAMENTO DE ERRO DECENTE
+limites = {
+    "BTC": {"compra_min": 0, "venda_max": 0},
+    "ETH": {"compra_min": 0, "venda_max": 0}
+}
 def salvar_valores():
-    # Lê os valores inseridos pelo usuário
-    global limite_max, limite_min
 # Limpa qualquer mensagem de erro anterior
-    msg_erro.config(text='')
+    try:
+        # Obtém os valores das entradas e atualiza os limites
+        limites["BTC"]["compra_min"] = float(entry_btc_compra_min.get())
+        limites["BTC"]["venda_max"] = float(entry_btc_venda_max.get())
+        limites["ETH"]["compra_min"] = float(entry_eth_compra_min.get())
+        limites["ETH"]["venda_max"] = float(entry_eth_venda_max.get())
+        
+        messagebox.showinfo("Sucesso", "Limites salvos com sucesso!")
+    except ValueError:
+        messagebox.showerror("Erro", "Por favor, insira valores numéricos válidos!")
 
-    valores_max = entrada_max.get()
-    valores_min = entrada_min.get()
-
-    # Converte os valores para float e os armazena nas variáveis
-    if ',' in valores_max and ',' in valores_min:
-        try:
-            valores_max = [float(valor.strip ()) for valor in valores_max.split(',')]
-            valores_min = [float(valor.strip()) for valor in valores_min.split(',')]
-            if len(valores_max) == 2 and len(valores_min) == 2:
-                limite_max = valores_max
-                limite_min = valores_min
-                print(f"Limite Máximo: {limite_max}")
-                print(f"Limite Mínimo: {limite_min}")
-                print('VALORES SALVOS COM SUCESSO!')
-                msg_erro.config(text='Valores válidos!', fg='green')
-                return True  # Nenhum erro
-            else:
-                msg_erro.config(text='Certifique-se de fornecer exatamente dois valores, primeiro para BTC e o segundo para ETH',fg='red')
-                print("Erro: Certifique-se de fornecer exatamente dois valores para cada limite.")
-                return False  # Nenhum erro
-        except ValueError:
-            msg_erro.config(text='Digite os Preços no formato pedido',fg='red')
-            print("Erro: Certifique-se de digitar os valores no formato correto (ex: 105000.00, 3850.00)")
-            return False
-    else:
-        msg_erro.config(text='Erro: Certifique-se de separar os valores por vírgula.', fg='red') 
-        return False      
-
+    print(f"Limite Mínimo: ==compra {limites['BTC']['compra_min']}==, //compra {limites['ETH']['compra_min']}//")
+    
+    print(f"Limite Máximo: ==venda {limites['BTC']['venda_max']}==, //venda {limites['ETH']['venda_max']}//")
+    
 def iniciar_sistema():
     def tarefa():
         if salvar_valores():
@@ -188,7 +177,7 @@ def manter_sistema():
 
 #JANELA ABERTA
 janela = Tk()#janela aberta
-janela.title('Alertas compra e venda de criptos')
+janela.title('Alertas compra e venda de criptos  v2.0')
 janela.iconbitmap('icone-sistema.ico')
 janela.configure(bg='#f7f7f7')#cor de fundo da janela
 
@@ -216,33 +205,33 @@ atualiza_preco.pack(pady=5)
 
 #3 definir valor baixo para comprar e valor alto pra vender
 comando =Label(janela,
-    text='Digite os valores pedidos abaixo no formato (105000.00, 3850.00)',
+    text='Digite os valores pedidos abaixo no formato (105000.00, 3850.43)',
     font=("Cambria", 11))
 comando.pack(pady = 5)
 
-info1 = Label(janela,
-    text='Digite o Preço que deseja ser notificado para venda de (BTC, ETH):',
-    font=("Cambria", 11)).pack(pady = 1)
+#label e entry btc
+Label(janela, text="BTC - Compra:",
+    font=("Cambria", 11)).pack()
+entry_btc_compra_min = Entry(janela)
+entry_btc_compra_min.pack()
 
-entrada_max = Entry(janela)
-entrada_max.pack(pady=3)#caixa de digitação
-# Área para exibir mensagens de erro
-msg_erro = Label(janela, text='', fg='red')
-msg_erro.pack(pady=1)
+#label e entry btc
+Label(janela, text="BTC - Venda :",
+    font=("Cambria", 11)).pack()
+entry_btc_venda_max = Entry(janela)
+entry_btc_venda_max.pack()
 
-info2 = Label(janela,
-    text='Digite o Preço que deseja ser notificado para compra de (BTC, ETH):',
-    font=("Cambria", 11)).pack(pady = 1)
+#label e entry eth
+Label(janela, text="ETH - Compra:",
+    font=("Cambria", 11)).pack()
+entry_eth_compra_min = Entry(janela)
+entry_eth_compra_min.pack()
 
-entrada_min = Entry(janela)
-entrada_min.pack(pady=3)#caixa de digitação
-msg_erro = Label(janela, text='', fg='red')
-msg_erro.pack(pady=1)
-
-msg_erro = Label(janela,
-    text='',
-    fg='red')
-msg_erro.pack(pady=1)
+#label e entry eth
+Label(janela, text="ETH - Venda :",
+    font=("Cambria", 11)).pack()
+entry_eth_venda_max = Entry(janela)
+entry_eth_venda_max.pack()
 
 #botão de confirmação
 iniciar = Button(janela,
