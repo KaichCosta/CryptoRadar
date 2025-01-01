@@ -185,7 +185,7 @@ janela.configure(bg='#f7f7f7')#cor de fundo da janela
 info = Label(janela,
     text='Favor abrir Whatsapp Web antes de iniciar o programa',
     fg='red',font=("Times New Roman", 12, "underline")
-    ).pack(pady = 5)
+    ).pack(pady=5)
 
 hora = datetime.now()
 
@@ -215,13 +215,13 @@ comando.pack(pady = 5)
 Label(janela, text="BTC - Compra:",
     font=("Cambria", 11)).pack()
 entry_btc_compra_min = Entry(janela)
-entry_btc_compra_min.pack()
+entry_btc_compra_min.pack(padx=5, pady=5, side=LEFT)
 
 #label e entry btc
 Label(janela, text="BTC - Venda :",
     font=("Cambria", 11)).pack()
 entry_btc_venda_max = Entry(janela)
-entry_btc_venda_max.pack()
+entry_btc_venda_max.pack(padx=5, pady=5, side=LEFT)
 
 #label e entry eth
 Label(janela, text="ETH - Compra:",

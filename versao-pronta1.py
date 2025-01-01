@@ -16,7 +16,6 @@ from urllib.parse import quote
 import webbrowser
 import pyautogui
 
-
 #2 buscar preços bitcoin e ações atuais
 symbols = ['btc-usd', 'eth-usd']
 tickers = yf.Tickers(','.join(symbols))
