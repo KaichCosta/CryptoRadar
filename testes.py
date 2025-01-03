@@ -9,6 +9,7 @@ from tkinter import *
 from tkinter import messagebox
 import threading
 import requests
+from threading import Event
 
 #2 buscar preços bitcoin e ações atuais
 precos = {
@@ -17,7 +18,8 @@ precos = {
 }
 def atualizar_preco():
     def tarefa():
-        global precos, infohora
+        global precos, infohora, parar_sistema
+        #while not parar_sistema.is_set():
         requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
         requisicao_dic = requisicao.json()
         precos["BTC"]["compra"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
@@ -33,10 +35,12 @@ def atualizar_preco():
         infopreco.config(text=texto)
         hora = datetime.now()
         infohora.config(text=f'{hora.strftime("%H:%M:%S")}')
+        #print('ATUALIZAÇÃO DE PREÇOS ENCERRADO')
     threading.Thread(target=tarefa).start()
 
 # Variáveis globais
-sistema_iniciado = False
+parar_sistema = Event()
+global hora
 
 #TRATAMENTO DE ERRO DECENTE
 limites = {
@@ -44,6 +48,7 @@ limites = {
     "ETH": {"compra_min": 0, "venda_max": 0}
 }
 def salvar_valores():
+    global parar_sistema
     try:
         # Obtém os valores das entradas e atualiza os limites
         limites["BTC"]["compra_min"] = float(entry_btc_compra_min.get())
@@ -59,117 +64,125 @@ def salvar_valores():
     print(f"Limite Mínimo: ==compra {limites['BTC']['compra_min']}==, //compra {limites['ETH']['compra_min']}//")
     
     print(f"Limite Máximo: ==venda {limites['BTC']['venda_max']}==, //venda {limites['ETH']['venda_max']}//")
-    
+    while parar_sistema.is_set():
+        print('SALVAMENTO DE PREÇOS ENCERRADO')
 def iniciar_sistema():
-
     def tarefa():
+        global hora, parar_sistema
+        atualizar_preco()
+        time.sleep(5)
         if salvar_valores():
-            atualizar_preco()
-            time.sleep(5)
-            global sistema_iniciado  # Define uma flag global para controle
-            global hora
-            sistema_iniciado = True  # Altera o estado da flag
             
-            for moeda in precos:
-                precos_venda = precos[moeda]["venda"]
-                precos_compra = precos[moeda]["compra"]
+        #global parar_sistema  # Define uma flag global para controle
+            while not parar_sistema.is_set():
+                for moeda in precos:
+                    #if parar_sistema:
+                    #    break
+                    precos_venda = precos[moeda]["venda"]
+                    precos_compra = precos[moeda]["compra"]
 
-                if precos_venda > limites[moeda]["venda_max"]:
-                    print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
-                    print(f'\033[1;31m{moeda}: Preço atual ({precos_venda}) ultrapassou o limite máximo ({limites[moeda]["venda_max"]} as {hora.strftime("%H:%M:%S")}).\033[0m')
+                    if precos_venda > limites[moeda]["venda_max"]:
+                        print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
+                        print(f'\033[1;31m{moeda}: Preço atual ({precos_venda}) ultrapassou o limite máximo ({limites[moeda]["venda_max"]} as {hora.strftime("%H:%M:%S")}).\033[0m')
 
-                    hora = datetime.now()
+                        hora = datetime.now()
 
-                    time.sleep(10)
-                    try:
-                        workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
-                        pagina_contatos = workbook['Plan1']
+                        time.sleep(10)
+                        try:
+                            workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
+                            pagina_contatos = workbook['Plan1']
 
-                        for linha in pagina_contatos.iter_rows(min_row=5):
-                            #nome, telefone
-                            nome = linha[2].value    
-                            telefone = linha[3].value
-                            if nome and telefone:
-                            #mensagem que será enviada aos contatos
-                                msg = f'Olá {nome}, hora de vender {moeda}, o limite máximo para venda foi ultrapassado({limites[moeda]["venda_max"]}) às {hora.strftime("%d/%m/%Y, %H:%M")}'
+                            for linha in pagina_contatos.iter_rows(min_row=5):
+                                #nome, telefone
+                                nome = linha[2].value    
+                                telefone = linha[3].value
+                                if nome and telefone:
+                                #mensagem que será enviada aos contatos
+                                    msg = f'Olá {nome}, hora de vender {moeda}, o limite máximo para venda foi ultrapassado({limites[moeda]["venda_max"]}) às {hora.strftime("%d/%m/%Y, %H:%M")}'
 
-                                #link que abrirá o zap
-                                link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
+                                    #link que abrirá o zap
+                                    link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
 
-                                webbrowser.open(link_mensagem_zap)
-                                time.sleep(20)
+                                    webbrowser.open(link_mensagem_zap)
+                                    time.sleep(20)
 
-                                pyautogui.press('enter')
-                                time.sleep(5)
-                                print(f'Mensagem enviada para Nome= {nome} Cel= {telefone} com sucesso.')
-                                pyautogui.hotkey('ctrl', 'w')
-                                time.sleep(5)
-                            else:
-                                print(f'Contato inválido Nome= {nome} Cel= {telefone}')
-                            
-                            print('Todas as mensagens foram enviadas')
-    
-                    except Exception as e:
-                        print(f'Erro em enviar mensagem de venda para {nome}')
-            #==============================================
-                elif precos_compra < limites[moeda]["compra_min"]:
-                    print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
-                    print(f'\033[1;31m{moeda}: Preço atual ({precos_compra}) ultrapassou o limite mínimo ({limites[moeda]["compra_min"]} as {hora.strftime("%H:%M:%S")}).\033[0m')
-                    hora = datetime.now()
+                                    pyautogui.press('enter')
+                                    time.sleep(5)
+                                    print(f'Mensagem enviada para Nome= {nome} Cel= {telefone} com sucesso.')
+                                    pyautogui.hotkey('ctrl', 'w')
+                                    time.sleep(5)
+                                else:
+                                    print(f'Contato inválido Nome= {nome} Cel= {telefone}')
+                                
+                                print('Todas as mensagens foram enviadas')
+        
+                        except Exception as e:
+                            print(f'Erro em enviar mensagem de venda para {nome}')
+        
+                    #==============================================
+                    elif precos_compra < limites[moeda]["compra_min"]:
+                        print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
+                        print(f'\033[1;31m{moeda}: Preço atual ({precos_compra}) ultrapassou o limite mínimo ({limites[moeda]["compra_min"]} as {hora.strftime("%H:%M:%S")}).\033[0m')
+                        hora = datetime.now()
 
-                    #webbrowser.open('https://web.whatsapp.com/')
-                    time.sleep(10)
-                    try:
-                        workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
-                        pagina_contatos = workbook['Plan1']
+                        #webbrowser.open('https://web.whatsapp.com/')
+                        time.sleep(10)
+                        try:
+                            workbook = openpyxl.load_workbook('contatos-notificados.xlsx')
+                            pagina_contatos = workbook['Plan1']
 
-                        for linha in pagina_contatos.iter_rows(min_row=5):
-                            #nome, telefone
-                            nome = linha[2].value    
-                            telefone = linha[3].value
-                            if nome and telefone:
-                            #mensagem que será enviada aos contatos
-                                msg = f'Olá {nome}, hora de comprar {moeda}, o limite mínimo para compra foi ultrapassado({limites[moeda]["compra_min"]}) às {hora.strftime("%d/%m/%Y, %H:%M")}'
+                            for linha in pagina_contatos.iter_rows(min_row=5):
+                                #nome, telefone
+                                nome = linha[2].value    
+                                telefone = linha[3].value
+                                if nome and telefone:
+                                #mensagem que será enviada aos contatos
+                                    msg = f'Olá {nome}, hora de comprar {moeda}, o limite mínimo para compra foi ultrapassado({limites[moeda]["compra_min"]}) às {hora.strftime("%d/%m/%Y, %H:%M")}'
 
-                                #link que abrirá o zap
-                                link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
+                                    #link que abrirá o zap
+                                    link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
 
-                                webbrowser.open(link_mensagem_zap)
-                                time.sleep(20)
+                                    webbrowser.open(link_mensagem_zap)
+                                    time.sleep(20)
 
-                                pyautogui.press('enter')
-                                time.sleep(5)
-                                print(f'Mensagem enviada para Nome= {nome} Cel= {telefone} com sucesso.')
-                                pyautogui.hotkey('ctrl', 'w')
-                                time.sleep(5)
-                            else:
-                                print(f'Contato inválido! Nome= {nome} Cel= {telefone}')
-                            
-                            print('Todas as mensagens foram enviadas')
-    
-                    except Exception as e:
-                        print(f'Erro em enviar mensagem de compra para {nome}')
-                else:
-                    print('Sistema estável')
-                    manter_sistema()
+                                    pyautogui.press('enter')
+                                    time.sleep(5)
+                                    print(f'Mensagem enviada para Nome= {nome} Cel= {telefone} com sucesso.')
+                                    pyautogui.hotkey('ctrl', 'w')
+                                    time.sleep(5)
+                                else:
+                                    print(f'Contato inválido! Nome= {nome} Cel= {telefone}')
+                                
+                                print('Todas as mensagens foram enviadas')
+        
+                        except Exception as e:
+                            print(f'Erro em enviar mensagem de compra para {nome}')
+                #==============================================
+                    else:
+                        print('Sistema estável')
+                        manter_sistema()               
+            print('INICIAÇÃO DE SISTEMA ENCERRADO')
+
     threading.Thread(target=tarefa).start()
 
 def fechar_sistema():
-    global sistema_iniciado
-    sistema_iniciado = False
-    print('SISTEMA FECHADO COM SUCESSO')
+    global parar_sistema
+    parar_sistema.set()#Sinaliza para encerrar o sistema
+    print('FECHANDO SISTEMA')
     janela.destroy()
 
 def manter_sistema():
     def tarefa():
-        if sistema_iniciado:
-            global tempo 
-            print('SISTEMA ESTÁ AGUARDANDO OS 300 SEGUNDOS!')
-            for tempo in range(300, 0, 10):
-                print(f'Faltam {tempo} segundos')
-                time.sleep(10)
-            print('SISTEMA REINICIADO!')
-            #janela.after(300000, iniciar_sistema)#Chama de novo após 300 segundos
+        global parar_sistema
+        while not parar_sistema.is_set():
+            if parar_sistema.is_set(): 
+                print('SISTEMA ESTÁ AGUARDANDO OS 30 SEGUNDOS!')
+                for tempo in range(30, 0, -10):
+                    print(f'Faltam {tempo} segundos')
+                    time.sleep(10)
+                iniciar_sistema()
+                print('SISTEMA REINICIADO!')
+        print('MANTIMENTO DE SISTEMA ENCERRADA')
     threading.Thread(target=tarefa).start()
 
 #JANELA ABERTA
@@ -215,7 +228,6 @@ atualiza_preco = Button(janela,
     font=('Times', 10),
     command=atualizar_preco)
 atualiza_preco.pack(pady=5)
-#se clicar no botão posso fazer ativar uma função que é exatamente a busca de preço atual de crypto igaul o que ja tem
 
 #3 definir valor baixo para comprar e valor alto pra vender
 comando =Label(janela,
@@ -238,7 +250,7 @@ Label(grid_frame, text="BTC - Compra:",
     
 entry_btc_compra_min = Entry(grid_frame,
     bg='white',)
-entry_btc_compra_min.insert(0, "Deseja comprar quando passar de qual valor?")
+
 entry_btc_compra_min.grid(row=0, column=1, padx=5, pady=5)
 
 #label e entry btc
@@ -267,7 +279,6 @@ entry_eth_venda_max.grid(row=3, column=1, padx=5, pady=5)
 
 bottom_frame = Frame(janela, bg='#161616')
 bottom_frame.pack()
-# Instrução
 info3 =Label(bottom_frame,
     text='Clique em OK para continuar o sistema',
     fg='white',
