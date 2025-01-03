@@ -7,7 +7,6 @@ import webbrowser
 import pyautogui
 from tkinter import *
 from tkinter import messagebox
-from PIL import Image, ImageTk
 import threading
 import requests
 
@@ -62,9 +61,13 @@ def salvar_valores():
     print(f"Limite Máximo: ==venda {limites['BTC']['venda_max']}==, //venda {limites['ETH']['venda_max']}//")
     
 def iniciar_sistema():
+
     def tarefa():
         if salvar_valores():
+            atualizar_preco()
+            time.sleep(5)
             global sistema_iniciado  # Define uma flag global para controle
+            global hora
             sistema_iniciado = True  # Altera o estado da flag
             
             for moeda in precos:
@@ -73,7 +76,7 @@ def iniciar_sistema():
 
                 if precos_venda > limites[moeda]["venda_max"]:
                     print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
-                    print(f'\033[1;31m{moeda}: Preço atual ({precos_venda}) ultrapassou o limite máximo ({limites[moeda]["venda_max"]}).\033[0m')
+                    print(f'\033[1;31m{moeda}: Preço atual ({precos_venda}) ultrapassou o limite máximo ({limites[moeda]["venda_max"]} as {hora.strftime("%H:%M:%S")}).\033[0m')
 
                     hora = datetime.now()
 
@@ -86,33 +89,32 @@ def iniciar_sistema():
                             #nome, telefone
                             nome = linha[2].value    
                             telefone = linha[3].value
-
+                            if nome and telefone:
                             #mensagem que será enviada aos contatos
-                            msg = f'Olá {nome}, hora de comprar {moeda}, o limite máximo foi ultrapassado({limites[moeda]["compra_min"]}) às {hora.strftime("%d/%m/%Y, %H:%M")}'
+                                msg = f'Olá {nome}, hora de vender {moeda}, o limite máximo para venda foi ultrapassado({limites[moeda]["venda_max"]}) às {hora.strftime("%d/%m/%Y, %H:%M")}'
 
-                            #link que abrirá o zap
-                            link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
+                                #link que abrirá o zap
+                                link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
 
-                            webbrowser.open(link_mensagem_zap)
-                            time.sleep(20)
+                                webbrowser.open(link_mensagem_zap)
+                                time.sleep(20)
 
-                            pyautogui.press('enter')
-                            time.sleep(5)
-
-                            #pyautogui.hotkey('ctrl', 'w')
-                            #time.sleep(5)
-
-                            print('FINALIZADO')
-
-                            time.sleep(300)#timer de 5 minutos para repetir a parte de notificação
-                            atualiza_preco()
-                            iniciar_sistema()
+                                pyautogui.press('enter')
+                                time.sleep(5)
+                                print(f'Mensagem enviada para Nome= {nome} Cel= {telefone} com sucesso.')
+                                pyautogui.hotkey('ctrl', 'w')
+                                time.sleep(5)
+                            else:
+                                print(f'Contato inválido Nome= {nome} Cel= {telefone}')
+                            
+                            print('Todas as mensagens foram enviadas')
+    
                     except Exception as e:
-                        print(f'Erro em enviar mensagem de venda para{nome}')
+                        print(f'Erro em enviar mensagem de venda para {nome}')
             #==============================================
                 elif precos_compra < limites[moeda]["compra_min"]:
                     print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
-                    print(f'\033[1;31m{moeda}: Preço atual ({precos_compra}) ultrapassou o limite mínimo ({limites[moeda]["compra_min"]}).\033[0m')
+                    print(f'\033[1;31m{moeda}: Preço atual ({precos_compra}) ultrapassou o limite mínimo ({limites[moeda]["compra_min"]} as {hora.strftime("%H:%M:%S")}).\033[0m')
                     hora = datetime.now()
 
                     #webbrowser.open('https://web.whatsapp.com/')
@@ -125,35 +127,31 @@ def iniciar_sistema():
                             #nome, telefone
                             nome = linha[2].value    
                             telefone = linha[3].value
-
+                            if nome and telefone:
                             #mensagem que será enviada aos contatos
-                            msg = f'Olá {nome}, hora de comprar {moeda}, o limite máximo foi ultrapassado({limites[moeda]["compra_min"]}) às {hora.strftime("%d/%m/%Y, %H:%M")}'
+                                msg = f'Olá {nome}, hora de comprar {moeda}, o limite mínimo para compra foi ultrapassado({limites[moeda]["compra_min"]}) às {hora.strftime("%d/%m/%Y, %H:%M")}'
 
-                            #link que abrirá o zap
-                            link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
+                                #link que abrirá o zap
+                                link_mensagem_zap = f'https://web.whatsapp.com/send?phone={telefone}&text={quote(msg)}'
 
-                            webbrowser.open(link_mensagem_zap)
-                            time.sleep(20)
+                                webbrowser.open(link_mensagem_zap)
+                                time.sleep(20)
 
-                            pyautogui.press('enter')
-                            time.sleep(5)
-
-                            pyautogui.hotkey('ctrl', 'w')
-                            time.sleep(5)
-
-                            print('FINALIZADO')
-
-                            time.sleep(300)#timer de 5 minutos para repetir a parte de notificação
-                            atualiza_preco()
-                            iniciar_sistema()
+                                pyautogui.press('enter')
+                                time.sleep(5)
+                                print(f'Mensagem enviada para Nome= {nome} Cel= {telefone} com sucesso.')
+                                pyautogui.hotkey('ctrl', 'w')
+                                time.sleep(5)
+                            else:
+                                print(f'Contato inválido! Nome= {nome} Cel= {telefone}')
+                            
+                            print('Todas as mensagens foram enviadas')
+    
                     except Exception as e:
                         print(f'Erro em enviar mensagem de compra para {nome}')
                 else:
-                    time.sleep(300)
-                    threading.Thread(target=manter_sistema).start()
-                    print('SISTEMA INICIADO COM SUCESSO!')
-        else:
-            print('Sistema estável')
+                    print('Sistema estável')
+                    manter_sistema()
     threading.Thread(target=tarefa).start()
 
 def fechar_sistema():
@@ -164,11 +162,14 @@ def fechar_sistema():
 
 def manter_sistema():
     def tarefa():
-        if sistema_iniciado: 
-            print('SISTEMA ESTÁ SENDO MANTIDO COM SUCESSO!')
-            iniciar_sistema()
-            #janela.after(300000, manter_sistema)#Chama de novo após 300 segundos
-
+        if sistema_iniciado:
+            global tempo 
+            print('SISTEMA ESTÁ AGUARDANDO OS 300 SEGUNDOS!')
+            for tempo in range(300, 0, 10):
+                print(f'Faltam {tempo} segundos')
+                time.sleep(10)
+            print('SISTEMA REINICIADO!')
+            #janela.after(300000, iniciar_sistema)#Chama de novo após 300 segundos
     threading.Thread(target=tarefa).start()
 
 #JANELA ABERTA
@@ -177,11 +178,6 @@ janela.geometry("450x510")
 janela.config(bg='#161616')#cor de fundo da janela
 janela.title('Alertas compra e venda de criptos  v2.0')
 janela.iconbitmap('icone-sistema.ico')
-#img_fundo = Image.open("background_cryptoradar.png")
-#bg_img = ImageTk.PhotoImage(img_fundo)
-
-#fundo = Label(janela, image=bg_img)
-#fundo.place(x=0, y=0, relwidth=1, relheight=1)  # Expande para cobrir toda a janela
 
 # Usando pack na janela principal
 top_frame = Frame(janela, bg='#161616')
@@ -234,12 +230,15 @@ grid_frame = Frame(janela, bg='#161616')
 grid_frame.pack()
 
 #label e entry btc
+
 Label(grid_frame, text="BTC - Compra:",
     fg='white',
     bg='#161616',  
     font=("Cambria", 11)).grid(row=0, column=0, padx=5, pady=5)
+    
 entry_btc_compra_min = Entry(grid_frame,
     bg='white',)
+entry_btc_compra_min.insert(0, "Deseja comprar quando passar de qual valor?")
 entry_btc_compra_min.grid(row=0, column=1, padx=5, pady=5)
 
 #label e entry btc
