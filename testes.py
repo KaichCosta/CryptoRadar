@@ -9,8 +9,9 @@ from tkinter import *
 from tkinter import messagebox
 import threading
 import requests
-from threading import Event
+import sys
 
+parar_sistema_event = threading.Event()
 #2 buscar preços bitcoin e ações atuais
 precos = {
     "BTC": {"compra": 0, "venda": 0},  # Armazena preço de compra e venda do Bitcoin
@@ -18,37 +19,35 @@ precos = {
 }
 def atualizar_preco():
     def tarefa():
-        global precos, infohora, parar_sistema
-        #while not parar_sistema.is_set():
-        requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
-        requisicao_dic = requisicao.json()
-        precos["BTC"]["compra"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
-        precos["BTC"]["venda"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
-        precos["ETH"]["compra"] = round(float(requisicao_dic['ETHUSD']['bid']),2)
-        precos["ETH"]["venda"] = round(float(requisicao_dic['ETHUSD']['bid']),2)
-        
-        texto = f'''
-        BTC {precos["BTC"]["compra"]}
-        ETH {precos["ETH"]["compra"]}
-        '''
-        print(texto)
-        infopreco.config(text=texto)
-        hora = datetime.now()
-        infohora.config(text=f'{hora.strftime("%H:%M:%S")}')
-        #print('ATUALIZAÇÃO DE PREÇOS ENCERRADO')
-    threading.Thread(target=tarefa).start()
+        global precos, infohora
+        while not parar_sistema_event.is_set():
+            requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
+            requisicao_dic = requisicao.json()
+            precos["BTC"]["compra"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
+            precos["BTC"]["venda"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
+            precos["ETH"]["compra"] = round(float(requisicao_dic['ETHUSD']['bid']),2)
+            precos["ETH"]["venda"] = round(float(requisicao_dic['ETHUSD']['bid']),2)
+            
+            texto = f'''
+            BTC {precos["BTC"]["compra"]}
+            ETH {precos["ETH"]["compra"]}
+            '''
+            print(texto)
+            infopreco.config(text=texto)
+            hora = datetime.now()
+            infohora.config(text=f'{hora.strftime("%H:%M:%S")}')
+            if parar_sistema_event.is_set():
+                break
+            break   
+    threading.Thread(target=tarefa, daemon=True).start()
 
 # Variáveis globais
-parar_sistema = Event()
 global hora
-
-#TRATAMENTO DE ERRO DECENTE
 limites = {
     "BTC": {"compra_min": 0, "venda_max": 0},
     "ETH": {"compra_min": 0, "venda_max": 0}
 }
 def salvar_valores():
-    global parar_sistema
     try:
         # Obtém os valores das entradas e atualiza os limites
         limites["BTC"]["compra_min"] = float(entry_btc_compra_min.get())
@@ -64,20 +63,15 @@ def salvar_valores():
     print(f"Limite Mínimo: ==compra {limites['BTC']['compra_min']}==, //compra {limites['ETH']['compra_min']}//")
     
     print(f"Limite Máximo: ==venda {limites['BTC']['venda_max']}==, //venda {limites['ETH']['venda_max']}//")
-    while parar_sistema.is_set():
-        print('SALVAMENTO DE PREÇOS ENCERRADO')
+
 def iniciar_sistema():
     def tarefa():
         global hora, parar_sistema
         atualizar_preco()
         time.sleep(5)
         if salvar_valores():
-            
-        #global parar_sistema  # Define uma flag global para controle
-            while not parar_sistema.is_set():
+            while not parar_sistema_event.is_set():
                 for moeda in precos:
-                    #if parar_sistema:
-                    #    break
                     precos_venda = precos[moeda]["venda"]
                     precos_compra = precos[moeda]["compra"]
 
@@ -161,29 +155,34 @@ def iniciar_sistema():
                     else:
                         print('Sistema estável')
                         manter_sistema()               
-            print('INICIAÇÃO DE SISTEMA ENCERRADO')
-
-    threading.Thread(target=tarefa).start()
-
-def fechar_sistema():
-    global parar_sistema
-    parar_sistema.set()#Sinaliza para encerrar o sistema
-    print('FECHANDO SISTEMA')
-    janela.destroy()
+                break
+    threading.Thread(target=tarefa, daemon=True).start()
 
 def manter_sistema():
     def tarefa():
-        global parar_sistema
-        while not parar_sistema.is_set():
-            if parar_sistema.is_set(): 
-                print('SISTEMA ESTÁ AGUARDANDO OS 30 SEGUNDOS!')
-                for tempo in range(30, 0, -10):
-                    print(f'Faltam {tempo} segundos')
-                    time.sleep(10)
-                iniciar_sistema()
-                print('SISTEMA REINICIADO!')
-        print('MANTIMENTO DE SISTEMA ENCERRADA')
-    threading.Thread(target=tarefa).start()
+        while not parar_sistema_event.is_set():
+            #print('SISTEMA ESTÁ AGUARDANDO OS 30 SEGUNDOS!')
+                if parar_sistema_event.is_set():
+                    break
+                if not parar_sistema_event.is_set():
+                    for tempo in range(30, 0, -10):
+                        print(f'Faltam {tempo} segundos para reiniciar o sitema')
+                        time.sleep(10)
+                    iniciar_sistema()
+                    print('SISTEMA REINICIADO!')
+            
+    threading.Thread(target=tarefa, daemon=True).start()
+
+def fechar_sistema():
+
+    parar_sistema_event.set()#Sinaliza para encerrar o sistema
+    for thread in threading.enumerate():
+        if thread is not threading.main_thread():
+            thread.join(timeout=1)
+    print('FECHANDO SISTEMA')
+    janela.destroy()
+    time.sleep(3)
+    sys.exit()   
 
 #JANELA ABERTA
 janela = Tk()#janela aberta
@@ -307,5 +306,6 @@ parar = Button(bottom_frame,
 janela.protocol("WM_DELETE_WINDOW", fechar_sistema)
 
 # Executar a interface gráfica em paralelo ao loop principal contido em manter sistema
-janela.after(100, manter_sistema)  # Executa o loop principal depois de 100ms = 10s
+#janela.after(100, manter_sistema)  # Executa o loop principal depois de 100ms = 10s
+
 janela.mainloop()
