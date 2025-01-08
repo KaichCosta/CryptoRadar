@@ -68,7 +68,7 @@ def iniciar_sistema():
     def tarefa():
         global hora, parar_sistema
         atualizar_preco()
-        time.sleep(5)
+        time.sleep(5) 
         if salvar_valores():
             while not parar_sistema_event.is_set():
                 for moeda in precos:
@@ -160,17 +160,14 @@ def iniciar_sistema():
 
 def manter_sistema():
     def tarefa():
-        while not parar_sistema_event.is_set():
-            #print('SISTEMA ESTÁ AGUARDANDO OS 30 SEGUNDOS!')
-                if parar_sistema_event.is_set():
-                    break
-                if not parar_sistema_event.is_set():
-                    for tempo in range(30, 0, -10):
-                        print(f'Faltam {tempo} segundos para reiniciar o sitema')
-                        time.sleep(10)
-                    iniciar_sistema()
-                    print('SISTEMA REINICIADO!')
-            
+        if not parar_sistema_event.is_set():
+            global tempo 
+            print('SISTEMA ESTÁ AGUARDANDO OS 300 SEGUNDOS!')
+            for tempo in range(10, 0, -10):
+                print(f'Faltam {tempo} segundos')
+                time.sleep(2)
+            print('SISTEMA REINICIADO!')
+            iniciar_sistema()
     threading.Thread(target=tarefa, daemon=True).start()
 
 def fechar_sistema():
