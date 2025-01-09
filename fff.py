@@ -42,7 +42,6 @@ def atualizar_preco():
     threading.Thread(target=tarefa, daemon=True).start()
 
 # Variáveis globais
-#global hora
 thread_manter_sistema = None
 limites = {
     "BTC": {"compra_min": 0, "venda_max": 0},
@@ -55,8 +54,7 @@ def salvar_valores():
         limites["BTC"]["venda_max"] = float(entry_btc_venda_max.get())
         limites["ETH"]["compra_min"] = float(entry_eth_compra_min.get())
         limites["ETH"]["venda_max"] = float(entry_eth_venda_max.get())
-        
-        messagebox.showinfo("Sucesso", "Limites salvos com sucesso!")
+        #messagebox.showinfo("Sucesso", "Limites salvos com sucesso!")
         return True
     #usar pyautogui agora pra clicar nas janelas que aparecem e manter o sistema rodando de boasss
     except ValueError:
@@ -65,12 +63,12 @@ def salvar_valores():
     print(f"Limite Mínimo: ==compra {limites['BTC']['compra_min']}==, //compra {limites['ETH']['compra_min']}//")
     
     print(f"Limite Máximo: ==venda {limites['BTC']['venda_max']}==, //venda {limites['ETH']['venda_max']}//")
-
+    
 def iniciar_sistema():
     def tarefa():
         global hora, parar_sistema
         atualizar_preco()
-        time.sleep(5) 
+        time.sleep(3) 
         if salvar_valores():
             while not parar_sistema_event.is_set():
                 for moeda in precos:
@@ -311,6 +309,15 @@ parar = Button(bottom_frame,
     fg='white',
     bg='#161616',
     command = fechar_sistema).pack(pady = 5)
+
+msg_reinicio = Label(bottom_frame,
+    text=f'Faltam {tempo} segundos para reiniciar o sistema'
+    fg='#d7ad01',
+    bg='#161616',
+    font=("Bebas Neue", 12)).pack(pady=5)
+
+    fazer rodapé com meu nome copyright meu contato dentro de um link
+
 
 janela.protocol("WM_DELETE_WINDOW", fechar_sistema)
 
