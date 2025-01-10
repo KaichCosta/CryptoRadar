@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import openpyxl
 from urllib.parse import quote
@@ -10,8 +10,11 @@ from tkinter import messagebox
 import threading
 import requests
 import sys
-
+# Variáveis globais
+thread_manter_sistema = None
+start_time = None
 parar_sistema_event = threading.Event()
+
 #2 buscar preços bitcoin e ações atuais
 precos = {
     "BTC": {"compra": 0, "venda": 0},  # Armazena preço de compra e venda do Bitcoin
@@ -41,8 +44,6 @@ def atualizar_preco():
             break   
     threading.Thread(target=tarefa, daemon=True).start()
 
-# Variáveis globais
-global hora
 limites = {
     "BTC": {"compra_min": 0, "venda_max": 0},
     "ETH": {"compra_min": 0, "venda_max": 0}
@@ -54,21 +55,21 @@ def salvar_valores():
         limites["BTC"]["venda_max"] = float(entry_btc_venda_max.get())
         limites["ETH"]["compra_min"] = float(entry_eth_compra_min.get())
         limites["ETH"]["venda_max"] = float(entry_eth_venda_max.get())
-        
-        messagebox.showinfo("Sucesso", "Limites salvos com sucesso!")
+        #messagebox.showinfo("Sucesso", "Limites salvos com sucesso!")
         return True
+    #usar pyautogui agora pra clicar nas janelas que aparecem e manter o sistema rodando de boasss
     except ValueError:
         messagebox.showerror("Erro", "Por favor, insira valores numéricos válidos!")
 
     print(f"Limite Mínimo: ==compra {limites['BTC']['compra_min']}==, //compra {limites['ETH']['compra_min']}//")
     
     print(f"Limite Máximo: ==venda {limites['BTC']['venda_max']}==, //venda {limites['ETH']['venda_max']}//")
-
-def iniciar_sistema():
+    
+def iniciar_processo():
     def tarefa():
         global hora, parar_sistema
         atualizar_preco()
-        time.sleep(5) 
+        time.sleep(3) 
         if salvar_valores():
             while not parar_sistema_event.is_set():
                 for moeda in precos:
@@ -76,6 +77,7 @@ def iniciar_sistema():
                     precos_compra = precos[moeda]["compra"]
 
                     if precos_venda > limites[moeda]["venda_max"]:
+                        atualizar_crono()
                         print(f'\033[1;31m=== ALERTA DE VENDA===\033[0m')
                         print(f'\033[1;31m{moeda}: Preço atual ({precos_venda}) ultrapassou o limite máximo ({limites[moeda]["venda_max"]} as {hora.strftime("%H:%M:%S")}).\033[0m')
 
@@ -115,6 +117,7 @@ def iniciar_sistema():
         
                     #==============================================
                     elif precos_compra < limites[moeda]["compra_min"]:
+                        atualizar_crono()
                         print(f'\033[1;31m=== ALERTA DE COMPRA===\033[0m')
                         print(f'\033[1;31m{moeda}: Preço atual ({precos_compra}) ultrapassou o limite mínimo ({limites[moeda]["compra_min"]} as {hora.strftime("%H:%M:%S")}).\033[0m')
                         hora = datetime.now()
@@ -154,21 +157,53 @@ def iniciar_sistema():
                 #==============================================
                     else:
                         print('Sistema estável')
-                        manter_sistema()               
-                break
+                #iniciar_manter_sistema()
+                atualizar_crono()
+                janela.after(5 * 60 * 1000,iniciar_processo)
+                break               
+
     threading.Thread(target=tarefa, daemon=True).start()
 
-def manter_sistema():
+def atualizar_crono():
+
+    if start_time:
+        tempo_passado = datetime.now() - start_time
+        minutos, segundos = divmod(tempo_passado.seconds,60)
+        #atualiza o tempo no cronometro
+        texto2 = f'Sistema iniciado há {minutos}:{segundos:02d} min'
+        crono_label.config(text=texto2)
+        # Reagenda a próxima atualização em 1 segundo
+        janela.after(1000, atualizar_crono)
+
+def iniciar_sistema():
+    global start_time
+    if not start_time:
+        start_time = datetime.now()
+        print('SISTEMA REINICIADO!')
+        iniciar_processo()
+        atualizar_crono()
+
+def iniciar_manter_sistema():
+    global thread_manter_sistema
+
+    # Verifica se já existe uma thread ativa
+    if thread_manter_sistema and thread_manter_sistema.is_alive():
+        print("Manter sistema já está em execução!")
+        return
+
     def tarefa():
-        if not parar_sistema_event.is_set():
-            global tempo 
-            print('SISTEMA ESTÁ AGUARDANDO OS 300 SEGUNDOS!')
-            for tempo in range(10, 0, -10):
-                print(f'Faltam {tempo} segundos')
-                time.sleep(2)
+        global parar_sistema_event
+        while not parar_sistema_event.is_set():
+            for tempo in range(30, 0, -10):
+                print(f'Faltam {tempo} segundos para reiniciar o sistema')
+                time.sleep(10)
             print('SISTEMA REINICIADO!')
             iniciar_sistema()
-    threading.Thread(target=tarefa, daemon=True).start()
+            break  # Sai do loop após reiniciar o sistema
+
+    # Cria uma nova thread para manter_sistema, se não existir
+    thread_manter_sistema = threading.Thread(target=tarefa, daemon=True)
+    thread_manter_sistema.start()
 
 def fechar_sistema():
 
@@ -183,7 +218,7 @@ def fechar_sistema():
 
 #JANELA ABERTA
 janela = Tk()#janela aberta
-janela.geometry("450x510")
+janela.geometry("450x530")
 janela.config(bg='#161616')#cor de fundo da janela
 janela.title('Alertas compra e venda de criptos  v2.0')
 janela.iconbitmap('icone-sistema.ico')
@@ -300,9 +335,13 @@ parar = Button(bottom_frame,
     bg='#161616',
     command = fechar_sistema).pack(pady = 5)
 
+crono_label = Label(bottom_frame,
+    text=f'Sistema não iniciado',
+    fg='#d7ad01',
+    bg='#161616',
+    font=("Bebas Neue", 10))
+crono_label.pack(pady=5, side=LEFT)
+    #por o tempo de inicio do sistema no label de cima
+    #fazer rodapé com meu nome copyright meu contato dentro de um link
 janela.protocol("WM_DELETE_WINDOW", fechar_sistema)
-
-# Executar a interface gráfica em paralelo ao loop principal contido em manter sistema
-#janela.after(100, manter_sistema)  # Executa o loop principal depois de 100ms = 10s
-
 janela.mainloop()

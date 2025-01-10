@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import openpyxl
 from urllib.parse import quote
@@ -311,21 +311,11 @@ parar = Button(bottom_frame,
     command = fechar_sistema).pack(pady = 5)
 
 msg_reinicio = Label(bottom_frame,
-    text=f'Faltam {tempo} segundos para reiniciar o sistema'
+    text=f'Faltam segundos para reiniciar o sistema',
     fg='#d7ad01',
     bg='#161616',
     font=("Bebas Neue", 12)).pack(pady=5)
-
-    fazer rodapé com meu nome copyright meu contato dentro de um link
-
-
+    #por o tempo de inicio do sistema no label de cima
+    #fazer rodapé com meu nome copyright meu contato dentro de um link
 janela.protocol("WM_DELETE_WINDOW", fechar_sistema)
-
-# Executar a interface gráfica em paralelo ao loop principal contido em manter sistema
-#janela.after(100, manter_sistema)  # Executa o loop principal depois de 100ms = 10s
-
 janela.mainloop()
-
-
-
-
