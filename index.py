@@ -24,12 +24,12 @@ def atualizar_preco():
     def tarefa():
         global precos, infohora
         while not parar_sistema_event.is_set():
-            requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-USD,ETH-USD")
+            requisicao = requests.get("https://economia.awesomeapi.com.br/last/BTC-BRL,ETH-BRL")
             requisicao_dic = requisicao.json()
-            precos["BTC"]["compra"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
-            precos["BTC"]["venda"] = round(float(requisicao_dic['BTCUSD']['bid']),2)
-            precos["ETH"]["compra"] = round(float(requisicao_dic['ETHUSD']['bid']),2)
-            precos["ETH"]["venda"] = round(float(requisicao_dic['ETHUSD']['bid']),2)
+            precos["BTC"]["compra"] = round(float(requisicao_dic['BTCBRL']['bid']),2)
+            precos["BTC"]["venda"] = round(float(requisicao_dic['BTCBRL']['bid']),2)
+            precos["ETH"]["compra"] = round(float(requisicao_dic['ETHBRL']['bid']),2)
+            precos["ETH"]["venda"] = round(float(requisicao_dic['ETHBRL']['bid']),2)
             
             texto = f'''
             BTC {precos["BTC"]["compra"]}
